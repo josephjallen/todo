@@ -1,4 +1,4 @@
-package data
+package filestorage
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func saveByteSliceToFile(val []byte) error {
+func SaveByteSliceToFile(val []byte) error {
 
 	if _, err := os.Stat("File"); err == nil {
 		// Open the source file
@@ -48,7 +48,7 @@ func saveByteSliceToFile(val []byte) error {
 	return nil
 }
 
-func loadFileToByteSlice(file string) ([]byte, error) {
+func LoadFileToByteSlice(file string) ([]byte, error) {
 	f, err := os.OpenFile(file, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err

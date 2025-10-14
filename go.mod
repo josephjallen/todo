@@ -1,3 +1,3 @@
-module personalprojects
+module todo
 
-go 1.21
+go 1.25.0
