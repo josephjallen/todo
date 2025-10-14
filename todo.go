@@ -25,13 +25,17 @@ func (l *todoList) addItem(lItem todoListItem) {
  */
 func main() {
 
-	b, _ := filestorage.LoadFileToByteSlice("file")
-	fmt.Println(string(b))
-
 	todoListName := flag.String("todoList", "foo", "a string")
 	todoItemName := flag.String("item", "42", "a string")
 
 	flag.Parse()
+
+	filename := *todoListName
+	filename += ".json"
+	fmt.Println(string(filename))
+
+	b, _ := filestorage.LoadFileToByteSlice(filename)
+	fmt.Println(string(b))
 
 	list := todoList{Name: *todoListName}
 	lItem := todoListItem{Name: *todoItemName}

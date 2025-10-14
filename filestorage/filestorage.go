@@ -9,35 +9,12 @@ import (
 
 func SaveByteSliceToFile(val []byte) error {
 
-	if _, err := os.Stat("File"); err == nil {
-		// Open the source file
-		sourceFile, err := os.Open("file")
-		if err != nil {
-			return fmt.Errorf("failed to open source file: %w", err)
-		}
-		defer sourceFile.Close()
-
-		// Create the destination file
-		destinationFile, err := os.Create("./Backups/file_" + time.Now().String())
-		if err != nil {
-			return fmt.Errorf("failed to create destination file: %w", err)
-		}
-		defer destinationFile.Close()
-
-		// Copy the content
-		_, err = io.Copy(destinationFile, sourceFile)
-		if err != nil {
-			return fmt.Errorf("failed to copy file: %w", err)
-		}
-
-		err = os.Remove("File")
-		if err != nil {
-			return fmt.Errorf("failed to remove file: %w", err)
-		}
-
+	err := backupFile()
+	if err != nil {
+		return err
 	}
 
-	f, err := os.OpenFile("file", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("todo.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return (err)
 	}
@@ -73,4 +50,36 @@ func LoadFileToByteSlice(file string) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func backupFile() error {
+	if _, err := os.Stat("todo.json"); err == nil {
+		// Open the source file
+		sourceFile, err := os.Open("todo.json")
+		if err != nil {
+			return fmt.Errorf("failed to open source file: %w", err)
+		}
+		defer sourceFile.Close()
+
+		// Create the destination file
+		destinationFile, err := os.Create("./Backups/todo.json_" + time.Now().String())
+		if err != nil {
+			return fmt.Errorf("failed to create destination file: %w", err)
+		}
+		defer destinationFile.Close()
+
+		// Copy the content
+		_, err = io.Copy(destinationFile, sourceFile)
+		if err != nil {
+			return fmt.Errorf("failed to copy file: %w", err)
+		}
+
+		err = os.Remove("todo.json")
+		if err != nil {
+			return fmt.Errorf("failed to remove file: %w", err)
+		}
+
+	}
+
+	return nil
 }
