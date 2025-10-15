@@ -30,7 +30,37 @@ func main() {
 
 	flag.Parse()
 
-	filename := *todoListName
+	list, err := getList(*todoListName)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	if todoItemName != nil {
+		addItem(list, *todoItemName)
+	}
+
+	list_bb, err := json.Marshal(list)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	filestorage.SaveByteSliceToFile(list_bb)
+
+	fmt.Println(string(list_bb))
+
+}
+
+func addItem(list *todoList, todoItemName string) {
+	lItem := todoListItem{Name: todoItemName}
+
+	list.addItem(lItem)
+}
+
+/* go run todo.go -list=opt -item=7
+ */
+func getList(todoListName string) (*todoList, error) {
+
+	filename := todoListName
 	filename += ".json"
 	fmt.Println(string(filename))
 
@@ -44,21 +74,12 @@ func main() {
 	if list_b != nil {
 		fmt.Println(string(list_b))
 		err := json.Unmarshal(list_b, &list)
-		fmt.Println("Unmarshalled: ", list)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
 	} else {
-		list = todoList{Name: *todoListName}
+		list = todoList{Name: todoListName}
 	}
 
-	lItem := todoListItem{Name: *todoItemName}
-
-	list.addItem(lItem)
-
-	list_bb, _ := json.Marshal(list)
-
-	fmt.Println(string(list_bb))
-
-	filestorage.SaveByteSliceToFile(list_bb)
+	return &list, nil
 }
