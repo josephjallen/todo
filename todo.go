@@ -36,7 +36,8 @@ func main() {
 	}
 
 	if todoItemName != nil {
-		addItem(list, *todoItemName)
+		lItem := todoListItem{Name: *todoItemName}
+		list.addItem(lItem)
 	}
 
 	list_bb, err := json.Marshal(list)
@@ -48,12 +49,6 @@ func main() {
 
 	fmt.Println(string(list_bb))
 
-}
-
-func addItem(list *todoList, todoItemName string) {
-	lItem := todoListItem{Name: todoItemName}
-
-	list.addItem(lItem)
 }
 
 /* go run todo.go -list=opt -item=7
