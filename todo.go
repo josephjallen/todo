@@ -8,8 +8,8 @@ import (
 )
 
 type todoList struct {
-	Name   string `json:"name"`
-	LItems []todoListItem
+	Name   string         `json:"name"`
+	LItems []todoListItem `json:"litems"`
 }
 
 type todoListItem struct {
@@ -25,8 +25,8 @@ func (l *todoList) addItem(lItem todoListItem) {
  */
 func main() {
 
-	todoListName := flag.String("todoList", "foo", "a string")
-	todoItemName := flag.String("item", "42", "a string")
+	todoListName := flag.String("todoList", "todo", "a string")
+	todoItemName := flag.String("item", "1", "a string")
 
 	flag.Parse()
 
@@ -34,17 +34,31 @@ func main() {
 	filename += ".json"
 	fmt.Println(string(filename))
 
-	b, _ := filestorage.LoadFileToByteSlice(filename)
-	fmt.Println(string(b))
+	list_b, err := filestorage.LoadFileToByteSlice(filename)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
 
-	list := todoList{Name: *todoListName}
+	var list todoList
+
+	if list_b != nil {
+		fmt.Println(string(list_b))
+		err := json.Unmarshal(list_b, &list)
+		fmt.Println("Unmarshalled: ", list)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+	} else {
+		list = todoList{Name: *todoListName}
+	}
+
 	lItem := todoListItem{Name: *todoItemName}
 
 	list.addItem(lItem)
 
-	bb, _ := json.Marshal(list)
+	list_bb, _ := json.Marshal(list)
 
-	fmt.Println(string(bb))
+	fmt.Println(string(list_bb))
 
-	filestorage.SaveByteSliceToFile(bb)
+	filestorage.SaveByteSliceToFile(list_bb)
 }
