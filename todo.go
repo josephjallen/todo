@@ -13,7 +13,8 @@ type todoList struct {
 }
 
 type todoListItem struct {
-	Name string
+	Name        string
+	Description string
 }
 
 func (l *todoList) addItem(lItem todoListItem) {
@@ -22,12 +23,13 @@ func (l *todoList) addItem(lItem todoListItem) {
 }
 
 /*
-go run todo.go -list=opt -item=7
+go run todo.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
 */
 func main() {
 
-	todoListName := flag.String("todoList", "todo", "a string")
-	todoItemName := flag.String("item", "1", "a string")
+	todoListName := flag.String("todoList", "todo", "a list name")
+	todoAddItemName := flag.String("additemname", "1", "a list item name")
+	todoAddItemDescription := flag.String("additemdescription", "1", "a description")
 
 	flag.Parse()
 
@@ -36,8 +38,14 @@ func main() {
 		fmt.Println("error:", err)
 	}
 
-	if todoItemName != nil {
-		lItem := todoListItem{Name: *todoItemName}
+	if todoAddItemName != nil && todoAddItemDescription != nil {
+		for _, lItem := range list.LItems {
+			if lItem.Name == *todoAddItemName {
+				fmt.Println("Item already exists: " + lItem.Name)
+				return
+			}
+		}
+		lItem := todoListItem{Name: *todoAddItemName, Description: *todoAddItemDescription}
 		list.addItem(lItem)
 	}
 
