@@ -21,8 +21,9 @@ func (l *todoList) addItem(lItem todoListItem) {
 	fmt.Println("Added item: " + lItem.Name + " to list: " + l.Name)
 }
 
-/* go run todo.go -list=opt -item=7
- */
+/*
+go run todo.go -list=opt -item=7
+*/
 func main() {
 
 	todoListName := flag.String("todoList", "todo", "a string")
@@ -45,7 +46,7 @@ func main() {
 		fmt.Println("error:", err)
 	}
 
-	filestorage.SaveByteSliceToFile(list_bb)
+	filestorage.SaveByteSliceToFile(list_bb, *todoListName+".json")
 
 	fmt.Println(string(list_bb))
 
