@@ -17,11 +17,6 @@ type todoListItem struct {
 	Description string
 }
 
-func (l *todoList) addItem(lItem todoListItem) {
-	l.LItems = append(l.LItems, lItem)
-	fmt.Println("Added item: " + lItem.Name + " to list: " + l.Name)
-}
-
 /*
 go run todo.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
 */
@@ -46,7 +41,8 @@ func main() {
 			}
 		}
 		lItem := todoListItem{Name: *todoAddItemName, Description: *todoAddItemDescription}
-		list.addItem(lItem)
+		list.LItems = append(list.LItems, lItem)
+		fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
 	}
 
 	list_bb, err := json.Marshal(list)
@@ -60,7 +56,7 @@ func main() {
 
 }
 
-/* go run todo.go -list=opt -item=7
+/*
  */
 func getList(todoListName string) (*todoList, error) {
 
