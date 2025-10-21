@@ -19,12 +19,15 @@ type todoListItem struct {
 
 /*
 go run todo.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
+go run todo.go -todoList=todod1 -deleteitemname=monday
 */
 func main() {
 
-	todoListName := flag.String("todoList", "todo", "a list name")
-	todoAddItemName := flag.String("additemname", "1", "a list item name")
-	todoAddItemDescription := flag.String("additemdescription", "1", "a description")
+	todoListName := flag.String("todoList", "", "")
+	todoAddItemName := flag.String("additemname", "", "")
+	todoAddItemDescription := flag.String("additemdescription", "", "")
+
+	todoDeleteItemName := flag.String("deleteitemname", "", "")
 
 	flag.Parse()
 
@@ -33,7 +36,7 @@ func main() {
 		fmt.Println("error:", err)
 	}
 
-	if todoAddItemName != nil && todoAddItemDescription != nil {
+	if *todoAddItemName != "" && *todoAddItemDescription != "" {
 		for _, lItem := range list.LItems {
 			if lItem.Name == *todoAddItemName {
 				fmt.Println("Item already exists: " + lItem.Name)
@@ -43,6 +46,21 @@ func main() {
 		lItem := todoListItem{Name: *todoAddItemName, Description: *todoAddItemDescription}
 		list.LItems = append(list.LItems, lItem)
 		fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
+	} else if *todoDeleteItemName != "" {
+		var deleteItemIndex int = -2
+		for index, lItem := range list.LItems {
+			if lItem.Name == *todoDeleteItemName {
+				deleteItemIndex = index
+				break
+			}
+		}
+		if deleteItemIndex > -2 {
+			list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
+			fmt.Println("Item Deleted: " + *todoDeleteItemName + " from list: " + list.Name)
+		} else {
+			fmt.Println("Cannot find Item to delete: " + *todoDeleteItemName)
+		}
+
 	}
 
 	list_bb, err := json.Marshal(list)
