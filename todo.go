@@ -20,12 +20,16 @@ type todoListItem struct {
 /*
 go run todo.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
 go run todo.go -todoList=todod1 -deleteitemname=monday
+go run todo.go -todoList=todod1 -updateitemname=monday -updateitemdescription=gotoshop_updated
 */
 func main() {
 
 	todoListName := flag.String("todoList", "", "")
 	todoAddItemName := flag.String("additemname", "", "")
 	todoAddItemDescription := flag.String("additemdescription", "", "")
+
+	todoUpdateItemName := flag.String("updateitemname", "", "")
+	todoUpdateItemDescription := flag.String("updateitemdescription", "", "")
 
 	todoDeleteItemName := flag.String("deleteitemname", "", "")
 
@@ -46,6 +50,20 @@ func main() {
 		lItem := todoListItem{Name: *todoAddItemName, Description: *todoAddItemDescription}
 		list.LItems = append(list.LItems, lItem)
 		fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
+	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
+		var updateItemIndex int = -2
+		for index, lItem := range list.LItems {
+			if lItem.Name == *todoUpdateItemName {
+				updateItemIndex = index
+				break
+			}
+		}
+		if updateItemIndex > -2 {
+			list.LItems[updateItemIndex].Description = *todoUpdateItemDescription
+			fmt.Println("Item Updated: " + *todoUpdateItemName + " in list: " + list.Name)
+		} else {
+			fmt.Println("Cannot find Item to update: " + *todoUpdateItemName)
+		}
 	} else if *todoDeleteItemName != "" {
 		var deleteItemIndex int = -2
 		for index, lItem := range list.LItems {
@@ -60,7 +78,6 @@ func main() {
 		} else {
 			fmt.Println("Cannot find Item to delete: " + *todoDeleteItemName)
 		}
-
 	}
 
 	list_bb, err := json.Marshal(list)
