@@ -34,33 +34,9 @@ func main() {
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
 		todostore.AddItemToList(list, *todoAddItemName, *todoAddItemDescription)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
-		var updateItemIndex int = -2
-		for index, lItem := range list.LItems {
-			if lItem.Name == *todoUpdateItemName {
-				updateItemIndex = index
-				break
-			}
-		}
-		if updateItemIndex > -2 {
-			list.LItems[updateItemIndex].Description = *todoUpdateItemDescription
-			fmt.Println("Item Updated: " + *todoUpdateItemName + " in list: " + list.Name)
-		} else {
-			fmt.Println("Cannot find Item to update: " + *todoUpdateItemName)
-		}
+		todostore.UpdateListItem(list, *todoUpdateItemName, *todoUpdateItemDescription)
 	} else if *todoDeleteItemName != "" {
-		var deleteItemIndex int = -2
-		for index, lItem := range list.LItems {
-			if lItem.Name == *todoDeleteItemName {
-				deleteItemIndex = index
-				break
-			}
-		}
-		if deleteItemIndex > -2 {
-			list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-			fmt.Println("Item Deleted: " + *todoDeleteItemName + " from list: " + list.Name)
-		} else {
-			fmt.Println("Cannot find Item to delete: " + *todoDeleteItemName)
-		}
+		todostore.DeleteItemFromList(list, *todoDeleteItemName)
 	}
 
 	list_bb, err := json.Marshal(list)

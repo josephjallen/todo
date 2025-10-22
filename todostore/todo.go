@@ -28,6 +28,38 @@ func AddItemToList(list *TodoList, itemName string, itemDescription string) {
 	fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
 }
 
+func UpdateListItem(list *TodoList, itemName string, itemDescription string) {
+	var updateItemIndex int = -2
+	for index, lItem := range list.LItems {
+		if lItem.Name == itemName {
+			updateItemIndex = index
+			break
+		}
+	}
+	if updateItemIndex > -2 {
+		list.LItems[updateItemIndex].Description = itemDescription
+		fmt.Println("Item Updated: " + itemName + " in list: " + list.Name)
+	} else {
+		fmt.Println("Cannot find Item to update: " + itemName)
+	}
+}
+
+func DeleteItemFromList(list *TodoList, itemName string) {
+	var deleteItemIndex int = -2
+	for index, lItem := range list.LItems {
+		if lItem.Name == itemName {
+			deleteItemIndex = index
+			break
+		}
+	}
+	if deleteItemIndex > -2 {
+		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
+		fmt.Println("Item Deleted: " + itemName + " from list: " + list.Name)
+	} else {
+		fmt.Println("Cannot find Item to delete: " + itemName)
+	}
+}
+
 /*
  */
 func GetList(todoListName string) (*TodoList, error) {
