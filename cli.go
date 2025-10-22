@@ -5,22 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"todo/filestorage"
+	"todo/todostore"
 )
 
-type todoList struct {
-	Name   string         `json:"name"`
-	LItems []todoListItem `json:"litems"`
-}
-
-type todoListItem struct {
-	Name        string
-	Description string
-}
-
 /*
-go run todo.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
-go run todo.go -todoList=todod1 -deleteitemname=monday
-go run todo.go -todoList=todod1 -updateitemname=monday -updateitemdescription=gotoshop_updated
+go run cli.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
+go run cli.go -todoList=todod1 -deleteitemname=monday
+go run cli.go -todoList=todod1 -updateitemname=monday -updateitemdescription=gotoshop_updated
 */
 func main() {
 
@@ -35,21 +26,13 @@ func main() {
 
 	flag.Parse()
 
-	list, err := getList(*todoListName)
+	list, err := todostore.GetList(*todoListName)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
-		for _, lItem := range list.LItems {
-			if lItem.Name == *todoAddItemName {
-				fmt.Println("Item already exists: " + lItem.Name)
-				return
-			}
-		}
-		lItem := todoListItem{Name: *todoAddItemName, Description: *todoAddItemDescription}
-		list.LItems = append(list.LItems, lItem)
-		fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
+		todostore.AddItemToList(list, *todoAddItemName, *todoAddItemDescription)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
 		var updateItemIndex int = -2
 		for index, lItem := range list.LItems {
@@ -89,32 +72,4 @@ func main() {
 
 	fmt.Println(string(list_bb))
 
-}
-
-/*
- */
-func getList(todoListName string) (*todoList, error) {
-
-	filename := todoListName
-	filename += ".json"
-	fmt.Println(string(filename))
-
-	list_b, err := filestorage.LoadFileToByteSlice(filename)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	var list todoList
-
-	if list_b != nil {
-		fmt.Println(string(list_b))
-		err := json.Unmarshal(list_b, &list)
-		if err != nil {
-			fmt.Println("error:", err)
-		}
-	} else {
-		list = todoList{Name: todoListName}
-	}
-
-	return &list, nil
 }
