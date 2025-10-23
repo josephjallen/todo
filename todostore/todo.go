@@ -80,10 +80,26 @@ func GetList(todoListName string) (*TodoList, error) {
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
 			fmt.Println("error:", err)
+			return nil, err
 		}
 	} else {
 		list = TodoList{Name: todoListName}
 	}
 
 	return &list, nil
+}
+
+func SaveList(list *TodoList) error {
+
+	list_bb, err := json.Marshal(list)
+	if err != nil {
+		fmt.Println("error:", err)
+		return err
+	}
+
+	filestorage.SaveByteSliceToFile(list_bb, list.Name+".json")
+
+	fmt.Println(string(list_bb))
+
+	return nil
 }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"todo/filestorage"
 	"todo/todostore"
 )
 
@@ -39,13 +37,9 @@ func main() {
 		todostore.DeleteItemFromList(list, *todoDeleteItemName)
 	}
 
-	list_bb, err := json.Marshal(list)
+	err = todostore.SaveList(list)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-
-	filestorage.SaveByteSliceToFile(list_bb, *todoListName+".json")
-
-	fmt.Println(string(list_bb))
 
 }
