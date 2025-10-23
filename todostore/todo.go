@@ -2,8 +2,8 @@ package todostore
 
 import (
 	"encoding/json"
-	"fmt"
 	"todo/filestorage"
+	"todo/logger"
 )
 
 type TodoList struct {
@@ -19,13 +19,13 @@ type TodoListItem struct {
 func AddItemToList(list *TodoList, itemName string, itemDescription string) {
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
-			fmt.Println("Item already exists: " + lItem.Name)
+			logger.InfoLog.Println("Item already exists: " + lItem.Name)
 			return
 		}
 	}
 	lItem := TodoListItem{Name: itemName, Description: itemDescription}
 	list.LItems = append(list.LItems, lItem)
-	fmt.Println("Added item: " + lItem.Name + " to list: " + list.Name)
+	logger.InfoLog.Println("Added item: " + lItem.Name + " to list: " + list.Name)
 }
 
 func UpdateListItem(list *TodoList, itemName string, itemDescription string) {
@@ -38,9 +38,9 @@ func UpdateListItem(list *TodoList, itemName string, itemDescription string) {
 	}
 	if updateItemIndex > -2 {
 		list.LItems[updateItemIndex].Description = itemDescription
-		fmt.Println("Item Updated: " + itemName + " in list: " + list.Name)
+		logger.InfoLog.Println("Item Updated: " + itemName + " in list: " + list.Name)
 	} else {
-		fmt.Println("Cannot find Item to update: " + itemName)
+		logger.InfoLog.Println("Cannot find Item to update: " + itemName)
 	}
 }
 
@@ -54,9 +54,9 @@ func DeleteItemFromList(list *TodoList, itemName string) {
 	}
 	if deleteItemIndex > -2 {
 		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-		fmt.Println("Item Deleted: " + itemName + " from list: " + list.Name)
+		logger.InfoLog.Println("Item Deleted: " + itemName + " from list: " + list.Name)
 	} else {
-		fmt.Println("Cannot find Item to delete: " + itemName)
+		logger.InfoLog.Println("Cannot find Item to delete: " + itemName)
 	}
 }
 
@@ -66,20 +66,20 @@ func GetList(todoListName string) (*TodoList, error) {
 
 	filename := todoListName
 	filename += ".json"
-	fmt.Println(string(filename))
+	logger.InfoLog.Println(string(filename))
 
 	list_b, err := filestorage.LoadFileToByteSlice(filename)
 	if err != nil {
-		fmt.Println("error:", err)
+		logger.ErrorLog.Println("error:", err)
 	}
 
 	var list TodoList
 
 	if list_b != nil {
-		fmt.Println(string(list_b))
+		logger.InfoLog.Println(string(list_b))
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
-			fmt.Println("error:", err)
+			logger.ErrorLog.Println("error:", err)
 			return nil, err
 		}
 	} else {
@@ -93,13 +93,13 @@ func SaveList(list *TodoList) error {
 
 	list_bb, err := json.Marshal(list)
 	if err != nil {
-		fmt.Println("error:", err)
+		logger.ErrorLog.Println("error:", err)
 		return err
 	}
 
 	filestorage.SaveByteSliceToFile(list_bb, list.Name+".json")
 
-	fmt.Println(string(list_bb))
+	logger.InfoLog.Println(string(list_bb))
 
 	return nil
 }

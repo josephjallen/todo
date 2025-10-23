@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"todo/logger"
 	"todo/todostore"
 )
 
@@ -26,7 +26,7 @@ func main() {
 
 	list, err := todostore.GetList(*todoListName)
 	if err != nil {
-		fmt.Println("error:", err)
+		logger.ErrorLog.Println("error:", err)
 	}
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
@@ -39,7 +39,7 @@ func main() {
 
 	err = todostore.SaveList(list)
 	if err != nil {
-		fmt.Println("error:", err)
+		logger.ErrorLog.Println("error:", err)
 	}
 
 }
