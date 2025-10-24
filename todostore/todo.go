@@ -19,8 +19,8 @@ type TodoListItem struct {
 
 var list TodoList
 
-func Init(todoListName string, ctx context.Context) error {
-	list_, err := getList(todoListName, ctx)
+func Init(ctx context.Context, todoListName string) error {
+	list_, err := getList(ctx, todoListName)
 	if err != nil {
 		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 		return err
@@ -29,7 +29,7 @@ func Init(todoListName string, ctx context.Context) error {
 	return nil
 }
 
-func AddItemToList(itemName string, itemDescription string, ctx context.Context) {
+func AddItemToList(ctx context.Context, itemName string, itemDescription string) {
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item already exists: "+lItem.Name)
@@ -40,7 +40,7 @@ func AddItemToList(itemName string, itemDescription string, ctx context.Context)
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Added item: "+lItem.Name+" to list: "+list.Name)
 }
 
-func UpdateListItem(itemName string, itemDescription string, ctx context.Context) {
+func UpdateListItem(ctx context.Context, itemName string, itemDescription string) {
 	var updateItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -56,7 +56,7 @@ func UpdateListItem(itemName string, itemDescription string, ctx context.Context
 	}
 }
 
-func DeleteItemFromList(itemName string, ctx context.Context) {
+func DeleteItemFromList(ctx context.Context, itemName string) {
 	var deleteItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -74,7 +74,7 @@ func DeleteItemFromList(itemName string, ctx context.Context) {
 
 /*
  */
-func getList(todoListName string, ctx context.Context) (TodoList, error) {
+func getList(ctx context.Context, todoListName string) (TodoList, error) {
 
 	filename := todoListName
 	filename += ".json"
