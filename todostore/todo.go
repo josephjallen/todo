@@ -1,6 +1,7 @@
 package todostore
 
 import (
+	"context"
 	"encoding/json"
 	"todo/filestorage"
 	"todo/logger"
@@ -16,19 +17,19 @@ type TodoListItem struct {
 	Description string
 }
 
-func AddItemToList(list *TodoList, itemName string, itemDescription string) {
+func AddItemToList(list *TodoList, itemName string, itemDescription string, ctx context.Context) {
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
-			logger.InfoLog.Println("Item already exists: " + lItem.Name)
+			logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item already exists: "+lItem.Name)
 			return
 		}
 	}
 	lItem := TodoListItem{Name: itemName, Description: itemDescription}
 	list.LItems = append(list.LItems, lItem)
-	logger.InfoLog.Println("Added item: " + lItem.Name + " to list: " + list.Name)
+	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Added item: "+lItem.Name+" to list: "+list.Name)
 }
 
-func UpdateListItem(list *TodoList, itemName string, itemDescription string) {
+func UpdateListItem(list *TodoList, itemName string, itemDescription string, ctx context.Context) {
 	var updateItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -38,13 +39,13 @@ func UpdateListItem(list *TodoList, itemName string, itemDescription string) {
 	}
 	if updateItemIndex > -2 {
 		list.LItems[updateItemIndex].Description = itemDescription
-		logger.InfoLog.Println("Item Updated: " + itemName + " in list: " + list.Name)
+		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item Updated: "+itemName+" in list: "+list.Name)
 	} else {
-		logger.InfoLog.Println("Cannot find Item to update: " + itemName)
+		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to update: "+itemName)
 	}
 }
 
-func DeleteItemFromList(list *TodoList, itemName string) {
+func DeleteItemFromList(list *TodoList, itemName string, ctx context.Context) {
 	var deleteItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -54,32 +55,32 @@ func DeleteItemFromList(list *TodoList, itemName string) {
 	}
 	if deleteItemIndex > -2 {
 		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-		logger.InfoLog.Println("Item Deleted: " + itemName + " from list: " + list.Name)
+		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item Deleted: "+itemName+" from list: "+list.Name)
 	} else {
-		logger.InfoLog.Println("Cannot find Item to delete: " + itemName)
+		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to delete: "+itemName)
 	}
 }
 
 /*
  */
-func GetList(todoListName string) (*TodoList, error) {
+func GetList(todoListName string, ctx context.Context) (*TodoList, error) {
 
 	filename := todoListName
 	filename += ".json"
-	logger.InfoLog.Println(string(filename))
+	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(filename))
 
 	list_b, err := filestorage.LoadFileToByteSlice(filename)
 	if err != nil {
-		logger.ErrorLog.Println("error:", err)
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
 
 	var list TodoList
 
 	if list_b != nil {
-		logger.InfoLog.Println(string(list_b))
+		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_b))
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
-			logger.ErrorLog.Println("error:", err)
+			logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 			return nil, err
 		}
 	} else {
@@ -89,17 +90,17 @@ func GetList(todoListName string) (*TodoList, error) {
 	return &list, nil
 }
 
-func SaveList(list *TodoList) error {
+func SaveList(list *TodoList, ctx context.Context) error {
 
 	list_bb, err := json.Marshal(list)
 	if err != nil {
-		logger.ErrorLog.Println("error:", err)
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 		return err
 	}
 
 	filestorage.SaveByteSliceToFile(list_bb, list.Name+".json")
 
-	logger.InfoLog.Println(string(list_bb))
+	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_bb))
 
 	return nil
 }

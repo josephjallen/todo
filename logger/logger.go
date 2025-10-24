@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+type TraceIdKey struct{}
+
 var InfoLog = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 var WarningLog = log.New(os.Stdout, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 
