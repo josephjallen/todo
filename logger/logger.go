@@ -12,3 +12,6 @@ var WarningLog = log.New(os.Stdout, "WARNING: ", log.Ldate|log.Ltime|log.Lshortf
 
 // When logging error messages it is good practice to use 'os.Stderr' instead of os.Stdout
 var ErrorLog = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+// LOOK AT STRUCTURED LOGGING (PACKAGE CALLED SLOG USE THAT!)
+//CALL LOGS VIA FUNCTIONS - DON'T EXPOSE VARIBLES - PASS IN CONTEXT

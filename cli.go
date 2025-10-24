@@ -30,22 +30,22 @@ func main() {
 
 	flag.Parse()
 
-	list, err := todostore.GetList(*todoListName, ctx)
+	err := todostore.Init(*todoListName, ctx)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), "error:", err)
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
-		todostore.AddItemToList(list, *todoAddItemName, *todoAddItemDescription, ctx)
+		todostore.AddItemToList(*todoAddItemName, *todoAddItemDescription, ctx)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
-		todostore.UpdateListItem(list, *todoUpdateItemName, *todoUpdateItemDescription, ctx)
+		todostore.UpdateListItem(*todoUpdateItemName, *todoUpdateItemDescription, ctx)
 	} else if *todoDeleteItemName != "" {
-		todostore.DeleteItemFromList(list, *todoDeleteItemName, ctx)
+		todostore.DeleteItemFromList(*todoDeleteItemName, ctx)
 	}
 
-	err = todostore.SaveList(list, ctx)
+	err = todostore.SaveList(ctx)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), "error:", err)
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
 
 }

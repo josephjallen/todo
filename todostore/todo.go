@@ -17,11 +17,22 @@ type TodoListItem struct {
 	Description string
 }
 
-func AddItemToList(list *TodoList, itemName string, itemDescription string, ctx context.Context) {
+var list TodoList
+
+func Init(todoListName string, ctx context.Context) error {
+	list_, err := getList(todoListName, ctx)
+	if err != nil {
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		return err
+	}
+	list = list_
+	return nil
+}
+
+func AddItemToList(itemName string, itemDescription string, ctx context.Context) {
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item already exists: "+lItem.Name)
-			return
 		}
 	}
 	lItem := TodoListItem{Name: itemName, Description: itemDescription}
@@ -29,7 +40,7 @@ func AddItemToList(list *TodoList, itemName string, itemDescription string, ctx 
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Added item: "+lItem.Name+" to list: "+list.Name)
 }
 
-func UpdateListItem(list *TodoList, itemName string, itemDescription string, ctx context.Context) {
+func UpdateListItem(itemName string, itemDescription string, ctx context.Context) {
 	var updateItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -45,7 +56,7 @@ func UpdateListItem(list *TodoList, itemName string, itemDescription string, ctx
 	}
 }
 
-func DeleteItemFromList(list *TodoList, itemName string, ctx context.Context) {
+func DeleteItemFromList(itemName string, ctx context.Context) {
 	var deleteItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -63,7 +74,7 @@ func DeleteItemFromList(list *TodoList, itemName string, ctx context.Context) {
 
 /*
  */
-func GetList(todoListName string, ctx context.Context) (*TodoList, error) {
+func getList(todoListName string, ctx context.Context) (TodoList, error) {
 
 	filename := todoListName
 	filename += ".json"
@@ -81,16 +92,16 @@ func GetList(todoListName string, ctx context.Context) (*TodoList, error) {
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
 			logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
-			return nil, err
+			return TodoList{}, err
 		}
 	} else {
 		list = TodoList{Name: todoListName}
 	}
 
-	return &list, nil
+	return list, nil
 }
 
-func SaveList(list *TodoList, ctx context.Context) error {
+func SaveList(ctx context.Context) error {
 
 	list_bb, err := json.Marshal(list)
 	if err != nil {
