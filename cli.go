@@ -42,10 +42,4 @@ func main() {
 	} else if *todoDeleteItemName != "" {
 		todostore.DeleteItemFromList(ctx, *todoDeleteItemName)
 	}
-
-	err = todostore.SaveList(ctx)
-	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
-	}
-
 }

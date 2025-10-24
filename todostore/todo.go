@@ -38,6 +38,11 @@ func AddItemToList(ctx context.Context, itemName string, itemDescription string)
 	lItem := TodoListItem{Name: itemName, Description: itemDescription}
 	list.LItems = append(list.LItems, lItem)
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Added item: "+lItem.Name+" to list: "+list.Name)
+
+	err := saveList(ctx)
+	if err != nil {
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+	}
 }
 
 func UpdateListItem(ctx context.Context, itemName string, itemDescription string) {
@@ -54,6 +59,11 @@ func UpdateListItem(ctx context.Context, itemName string, itemDescription string
 	} else {
 		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to update: "+itemName)
 	}
+
+	err := saveList(ctx)
+	if err != nil {
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+	}
 }
 
 func DeleteItemFromList(ctx context.Context, itemName string) {
@@ -69,6 +79,11 @@ func DeleteItemFromList(ctx context.Context, itemName string) {
 		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item Deleted: "+itemName+" from list: "+list.Name)
 	} else {
 		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to delete: "+itemName)
+	}
+
+	err := saveList(ctx)
+	if err != nil {
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
 }
 
@@ -101,7 +116,7 @@ func getList(ctx context.Context, todoListName string) (TodoList, error) {
 	return list, nil
 }
 
-func SaveList(ctx context.Context) error {
+func saveList(ctx context.Context) error {
 
 	list_bb, err := json.Marshal(list)
 	if err != nil {
