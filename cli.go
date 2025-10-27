@@ -37,10 +37,14 @@ func main() {
 	}
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
-		todostore.AddItemToList(ctx, *todoAddItemName, *todoAddItemDescription)
+		err = todostore.AddItemToList(ctx, *todoAddItemName, *todoAddItemDescription)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
-		todostore.UpdateListItem(ctx, *todoUpdateItemName, *todoUpdateItemDescription)
+		err = todostore.UpdateListItem(ctx, *todoUpdateItemName, *todoUpdateItemDescription)
 	} else if *todoDeleteItemName != "" {
-		todostore.DeleteItemFromList(ctx, *todoDeleteItemName)
+		err = todostore.DeleteItemFromList(ctx, *todoDeleteItemName)
+	}
+
+	if err != nil {
+		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
 }

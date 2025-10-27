@@ -39,7 +39,7 @@ func Init(ctx context.Context, todoListName string) error {
 	return nil
 }
 
-func AddItemToList(ctx context.Context, itemName string, itemDescription string) {
+func AddItemToList(ctx context.Context, itemName string, itemDescription string) error {
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item already exists: "+lItem.Name)
@@ -51,11 +51,13 @@ func AddItemToList(ctx context.Context, itemName string, itemDescription string)
 
 	err := saveList(ctx)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		return err
 	}
+
+	return nil
 }
 
-func UpdateListItem(ctx context.Context, itemName string, itemDescription string) {
+func UpdateListItem(ctx context.Context, itemName string, itemDescription string) error {
 	var updateItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -72,11 +74,13 @@ func UpdateListItem(ctx context.Context, itemName string, itemDescription string
 
 	err := saveList(ctx)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		return err
 	}
+
+	return nil
 }
 
-func DeleteItemFromList(ctx context.Context, itemName string) {
+func DeleteItemFromList(ctx context.Context, itemName string) error {
 	var deleteItemIndex int = -2
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
@@ -93,8 +97,10 @@ func DeleteItemFromList(ctx context.Context, itemName string) {
 
 	err := saveList(ctx)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		return err
 	}
+
+	return nil
 }
 
 /*
