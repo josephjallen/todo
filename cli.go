@@ -31,6 +31,7 @@ func main() {
 	flag.Parse()
 
 	err := todostore.Init(ctx, *todoListName)
+
 	if err != nil {
 		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}

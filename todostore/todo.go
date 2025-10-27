@@ -3,6 +3,7 @@ package todostore
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"todo/filestorage"
 	"todo/logger"
 )
@@ -17,15 +18,24 @@ type TodoListItem struct {
 	Description string
 }
 
-var list TodoList
+var list *TodoList
 
 func Init(ctx context.Context, todoListName string) error {
-	list_, err := getList(ctx, todoListName)
-	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
-		return err
+	if list == nil {
+		if list == nil {
+			fmt.Println("Creating single instance now.")
+			var err error
+			list, err = getList(ctx, todoListName)
+			if err != nil {
+				return err
+			}
+		} else {
+			fmt.Println("Single instance already created.")
+		}
+	} else {
+		fmt.Println("Single instance already created.")
 	}
-	list = list_
+
 	return nil
 }
 
@@ -89,8 +99,7 @@ func DeleteItemFromList(ctx context.Context, itemName string) {
 
 /*
  */
-func getList(ctx context.Context, todoListName string) (TodoList, error) {
-
+func getList(ctx context.Context, todoListName string) (*TodoList, error) {
 	filename := todoListName
 	filename += ".json"
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(filename))
@@ -107,13 +116,13 @@ func getList(ctx context.Context, todoListName string) (TodoList, error) {
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
 			logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
-			return TodoList{}, err
+			return &TodoList{}, err
 		}
 	} else {
 		list = TodoList{Name: todoListName}
 	}
 
-	return list, nil
+	return &list, nil
 }
 
 func saveList(ctx context.Context) error {
