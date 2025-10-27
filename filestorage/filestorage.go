@@ -1,36 +1,24 @@
 package filestorage
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"time"
 )
 
-var fileName string
-
-func Init(ctx context.Context, fileName_ string) {
-	if fileName == "" {
-		if fileName == "" {
-			fmt.Println("Filestore Creating single instance now.")
-			fileName = fileName_
-		} else {
-			fmt.Println("Filestore Single instance already created.")
-		}
-	} else {
-		fmt.Println("Filestore Single instance already created.")
-	}
+type FileStorage struct {
+	Name string
 }
 
-func SaveByteSliceToFile(val []byte, fileName string) error {
+func SaveByteSliceToFile(val []byte, fileStorage FileStorage) error {
 
-	err := backupFile(fileName)
+	err := backupFile(fileStorage.Name)
 	if err != nil {
 		return err
 	}
 
-	f, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(fileStorage.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return (err)
 	}

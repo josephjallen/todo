@@ -19,6 +19,7 @@ type TodoListItem struct {
 }
 
 var list *TodoList
+var fileStorage filestorage.FileStorage
 
 func Init(ctx context.Context, todoListName string) error {
 	if list == nil {
@@ -29,7 +30,7 @@ func Init(ctx context.Context, todoListName string) error {
 			if err != nil {
 				return err
 			}
-			filestorage.Init(ctx, todoListName+".json")
+			fileStorage = filestorage.FileStorage{Name: todoListName + ".json"}
 		} else {
 			fmt.Println("TodoStore Single instance already created.")
 		}
@@ -140,7 +141,7 @@ func saveList(ctx context.Context) error {
 		return err
 	}
 
-	filestorage.SaveByteSliceToFile(list_bb, list.Name+".json")
+	filestorage.SaveByteSliceToFile(list_bb, fileStorage)
 
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_bb))
 
