@@ -1,11 +1,27 @@
 package filestorage
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"time"
 )
+
+var fileName string
+
+func Init(ctx context.Context, fileName_ string) {
+	if fileName == "" {
+		if fileName == "" {
+			fmt.Println("Filestore Creating single instance now.")
+			fileName = fileName_
+		} else {
+			fmt.Println("Filestore Single instance already created.")
+		}
+	} else {
+		fmt.Println("Filestore Single instance already created.")
+	}
+}
 
 func SaveByteSliceToFile(val []byte, fileName string) error {
 

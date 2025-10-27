@@ -23,17 +23,18 @@ var list *TodoList
 func Init(ctx context.Context, todoListName string) error {
 	if list == nil {
 		if list == nil {
-			fmt.Println("Creating single instance now.")
+			fmt.Println("TodoStore Creating single instance now.")
 			var err error
 			list, err = getList(ctx, todoListName)
 			if err != nil {
 				return err
 			}
+			filestorage.Init(ctx, todoListName+".json")
 		} else {
-			fmt.Println("Single instance already created.")
+			fmt.Println("TodoStore Single instance already created.")
 		}
 	} else {
-		fmt.Println("Single instance already created.")
+		fmt.Println("TodoStore Single instance already created.")
 	}
 
 	return nil
