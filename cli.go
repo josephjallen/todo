@@ -33,7 +33,7 @@ func main() {
 	err := todostore.Init(ctx, *todoListName)
 
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		logger.ErrorLog(ctx, err.Error())
 	}
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
@@ -45,6 +45,6 @@ func main() {
 	}
 
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		logger.ErrorLog(ctx, err.Error())
 	}
 }

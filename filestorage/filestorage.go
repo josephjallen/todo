@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"time"
+	"todo/logger"
 )
 
 type FileStorage struct {
@@ -16,14 +17,10 @@ var fileStorage *FileStorage
 
 func Init(ctx context.Context, fileName string) error {
 	if fileStorage == nil {
-		if fileStorage == nil {
-			fmt.Println("FileStorage Creating single instance now.")
-			fileStorage = &FileStorage{Name: fileName}
-		} else {
-			fmt.Println("FileStorage Single instance already created.")
-		}
+		logger.InfoLog(ctx, "FileStorage Creating single instance now.")
+		fileStorage = &FileStorage{Name: fileName}
 	} else {
-		fmt.Println("FileStorage Single instance already created.")
+		logger.WarningLog(ctx, "FileStorage Single instance already created.")
 	}
 
 	return nil

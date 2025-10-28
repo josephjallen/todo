@@ -1,17 +1,20 @@
 package logger
 
 import (
-	"log"
-	"os"
+	"context"
+	"log/slog"
 )
 
 type TraceIdKey struct{}
 
-var InfoLog = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-var WarningLog = log.New(os.Stdout, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+func InfoLog(ctx context.Context, message string) {
+	slog.Info(ctx.Value(TraceIdKey{}).(string) + " " + message)
+}
 
-// When logging error messages it is good practice to use 'os.Stderr' instead of os.Stdout
-var ErrorLog = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+func WarningLog(ctx context.Context, message string) {
+	slog.Warn(ctx.Value(TraceIdKey{}).(string) + " " + message)
+}
 
-// LOOK AT STRUCTURED LOGGING (PACKAGE CALLED SLOG USE THAT!)
-//CALL LOGS VIA FUNCTIONS - DON'T EXPOSE VARIBLES - PASS IN CONTEXT
+func ErrorLog(ctx context.Context, message string) {
+	slog.Error(ctx.Value(TraceIdKey{}).(string) + " " + message)
+}

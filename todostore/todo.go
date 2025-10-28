@@ -3,7 +3,6 @@ package todostore
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"todo/filestorage"
 	"todo/logger"
 )
@@ -22,37 +21,40 @@ var list *TodoList
 
 func Init(ctx context.Context, todoListName string) error {
 	if list == nil {
-		if list == nil {
-			filestorage.Init(ctx, todoListName+".json")
-			fmt.Println("TodoStore Creating single instance now.")
-			var err error
-			list, err = getList(ctx, todoListName)
-			if err != nil {
-				return err
-			}
-		} else {
-			fmt.Println("TodoStore Single instance already created.")
+		filestorage.Init(ctx, todoListName+".json")
+		logger.InfoLog(ctx, "TodoStore Creating single instance now.")
+		var err error
+		list, err = getList(ctx, todoListName)
+		if err != nil {
+			return err
 		}
 	} else {
-		fmt.Println("TodoStore Single instance already created.")
+		logger.WarningLog(ctx, "TodoStore Single instance already created.")
 	}
 
 	return nil
 }
 
 func AddItemToList(ctx context.Context, itemName string, itemDescription string) error {
+	var alreadyExists bool = false
 	for _, lItem := range list.LItems {
 		if lItem.Name == itemName {
-			logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item already exists: "+lItem.Name)
+			alreadyExists = true
+			break
 		}
 	}
-	lItem := TodoListItem{Name: itemName, Description: itemDescription}
-	list.LItems = append(list.LItems, lItem)
-	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Added item: "+lItem.Name+" to list: "+list.Name)
 
-	err := saveList(ctx)
-	if err != nil {
-		return err
+	if !alreadyExists {
+		lItem := TodoListItem{Name: itemName, Description: itemDescription}
+		list.LItems = append(list.LItems, lItem)
+		logger.InfoLog(ctx, "Added item: "+lItem.Name+" to list: "+list.Name)
+
+		err := saveList(ctx)
+		if err != nil {
+			return err
+		}
+	} else {
+		logger.InfoLog(ctx, "Item already exists: "+itemName)
 	}
 
 	return nil
@@ -68,14 +70,13 @@ func UpdateListItem(ctx context.Context, itemName string, itemDescription string
 	}
 	if updateItemIndex > -2 {
 		list.LItems[updateItemIndex].Description = itemDescription
-		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item Updated: "+itemName+" in list: "+list.Name)
+		logger.InfoLog(ctx, "Item Updated: "+itemName+" in list: "+list.Name)
+		err := saveList(ctx)
+		if err != nil {
+			return err
+		}
 	} else {
-		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to update: "+itemName)
-	}
-
-	err := saveList(ctx)
-	if err != nil {
-		return err
+		logger.InfoLog(ctx, "Cannot find Item to update: "+itemName)
 	}
 
 	return nil
@@ -91,14 +92,13 @@ func DeleteItemFromList(ctx context.Context, itemName string) error {
 	}
 	if deleteItemIndex > -2 {
 		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Item Deleted: "+itemName+" from list: "+list.Name)
+		logger.InfoLog(ctx, "Item Deleted: "+itemName+" from list: "+list.Name)
+		err := saveList(ctx)
+		if err != nil {
+			return err
+		}
 	} else {
-		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " Cannot find Item to delete: "+itemName)
-	}
-
-	err := saveList(ctx)
-	if err != nil {
-		return err
+		logger.InfoLog(ctx, "Cannot find Item to delete: "+itemName)
 	}
 
 	return nil
@@ -107,20 +107,19 @@ func DeleteItemFromList(ctx context.Context, itemName string) error {
 /*
  */
 func getList(ctx context.Context, todoListName string) (*TodoList, error) {
-	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(todoListName))
+	logger.InfoLog(ctx, string(todoListName))
 
 	list_b, err := filestorage.LoadFileToByteSlice()
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
+		return &TodoList{}, err
 	}
 
 	var list TodoList
 
 	if list_b != nil {
-		logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_b))
+		logger.InfoLog(ctx, string(list_b))
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
-			logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 			return &TodoList{}, err
 		}
 	} else {
@@ -134,13 +133,12 @@ func saveList(ctx context.Context) error {
 
 	list_bb, err := json.Marshal(list)
 	if err != nil {
-		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 		return err
 	}
 
 	filestorage.SaveByteSliceToFile(list_bb)
 
-	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_bb))
+	logger.InfoLog(ctx, string(list_bb))
 
 	return nil
 }
