@@ -1,6 +1,7 @@
 package filestorage
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -11,9 +12,26 @@ type FileStorage struct {
 	Name string
 }
 
-func SaveByteSliceToFile(val []byte, fileStorage FileStorage) error {
+var fileStorage *FileStorage
 
-	err := backupFile(fileStorage.Name)
+func Init(ctx context.Context, fileName string) error {
+	if fileStorage == nil {
+		if fileStorage == nil {
+			fmt.Println("FileStorage Creating single instance now.")
+			fileStorage = &FileStorage{Name: fileName}
+		} else {
+			fmt.Println("FileStorage Single instance already created.")
+		}
+	} else {
+		fmt.Println("FileStorage Single instance already created.")
+	}
+
+	return nil
+}
+
+func SaveByteSliceToFile(val []byte) error {
+
+	err := backupFile()
 	if err != nil {
 		return err
 	}
@@ -29,8 +47,8 @@ func SaveByteSliceToFile(val []byte, fileStorage FileStorage) error {
 	return nil
 }
 
-func LoadFileToByteSlice(fileName string) ([]byte, error) {
-	f, err := os.OpenFile(fileName, os.O_RDONLY, 0644)
+func LoadFileToByteSlice() ([]byte, error) {
+	f, err := os.OpenFile(fileStorage.Name, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -57,17 +75,17 @@ func LoadFileToByteSlice(fileName string) ([]byte, error) {
 	return b, nil
 }
 
-func backupFile(fileName string) error {
-	if _, err := os.Stat(fileName); err == nil {
+func backupFile() error {
+	if _, err := os.Stat(fileStorage.Name); err == nil {
 		// Open the source file
-		sourceFile, err := os.Open(fileName)
+		sourceFile, err := os.Open(fileStorage.Name)
 		if err != nil {
 			return fmt.Errorf("failed to open source file: %w", err)
 		}
 		defer sourceFile.Close()
 
 		// Create the destination file
-		destinationFile, err := os.Create("./Backups/" + fileName + "_" + time.Now().String())
+		destinationFile, err := os.Create("./Backups/" + fileStorage.Name + "_" + time.Now().String())
 		if err != nil {
 			return fmt.Errorf("failed to create destination file: %w", err)
 		}
@@ -79,7 +97,7 @@ func backupFile(fileName string) error {
 			return fmt.Errorf("failed to copy file: %w", err)
 		}
 
-		err = os.Remove(fileName)
+		err = os.Remove(fileStorage.Name)
 		if err != nil {
 			return fmt.Errorf("failed to remove file: %w", err)
 		}

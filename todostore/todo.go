@@ -19,18 +19,17 @@ type TodoListItem struct {
 }
 
 var list *TodoList
-var fileStorage filestorage.FileStorage
 
 func Init(ctx context.Context, todoListName string) error {
 	if list == nil {
 		if list == nil {
+			filestorage.Init(ctx, todoListName+".json")
 			fmt.Println("TodoStore Creating single instance now.")
 			var err error
 			list, err = getList(ctx, todoListName)
 			if err != nil {
 				return err
 			}
-			fileStorage = filestorage.FileStorage{Name: todoListName + ".json"}
 		} else {
 			fmt.Println("TodoStore Single instance already created.")
 		}
@@ -108,11 +107,9 @@ func DeleteItemFromList(ctx context.Context, itemName string) error {
 /*
  */
 func getList(ctx context.Context, todoListName string) (*TodoList, error) {
-	filename := todoListName
-	filename += ".json"
-	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(filename))
+	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(todoListName))
 
-	list_b, err := filestorage.LoadFileToByteSlice(filename)
+	list_b, err := filestorage.LoadFileToByteSlice()
 	if err != nil {
 		logger.ErrorLog.Println(ctx.Value(logger.TraceIdKey{}).(string), " error:", err)
 	}
@@ -141,7 +138,7 @@ func saveList(ctx context.Context) error {
 		return err
 	}
 
-	filestorage.SaveByteSliceToFile(list_bb, fileStorage)
+	filestorage.SaveByteSliceToFile(list_bb)
 
 	logger.InfoLog.Println(ctx.Value(logger.TraceIdKey{}).(string), string(list_bb))
 
