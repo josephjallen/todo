@@ -3,6 +3,7 @@ package todostore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"todo/filestorage"
 	"todo/logger"
 )
@@ -15,16 +16,20 @@ type TodoList struct {
 type TodoListItem struct {
 	Name        string
 	Description string
+	Status      string
 }
 
-var list *TodoList
+var List *TodoList
+var StatusNotStarted string = "not started"
+var StatusStarted string = "started"
+var StatusCompleted string = "completed"
 
 func Init(ctx context.Context, todoListName string) error {
-	if list == nil {
+	if List == nil {
 		filestorage.Init(ctx, todoListName+".json")
 		logger.InfoLog(ctx, "TodoStore Creating single instance now.")
 		var err error
-		list, err = getList(ctx, todoListName)
+		List, err = getList(ctx, todoListName)
 		if err != nil {
 			return err
 		}
@@ -37,7 +42,7 @@ func Init(ctx context.Context, todoListName string) error {
 
 func AddItemToList(ctx context.Context, itemName string, itemDescription string) error {
 	var alreadyExists bool = false
-	for _, lItem := range list.LItems {
+	for _, lItem := range List.LItems {
 		if lItem.Name == itemName {
 			alreadyExists = true
 			break
@@ -45,14 +50,9 @@ func AddItemToList(ctx context.Context, itemName string, itemDescription string)
 	}
 
 	if !alreadyExists {
-		lItem := TodoListItem{Name: itemName, Description: itemDescription}
-		list.LItems = append(list.LItems, lItem)
-		logger.InfoLog(ctx, "Added item: "+lItem.Name+" to list: "+list.Name)
-
-		err := saveList(ctx)
-		if err != nil {
-			return err
-		}
+		lItem := TodoListItem{Name: itemName, Description: itemDescription, Status: StatusNotStarted}
+		List.LItems = append(List.LItems, lItem)
+		logger.InfoLog(ctx, "Added item: "+lItem.Name+" to List: "+List.Name)
 	} else {
 		logger.InfoLog(ctx, "Item already exists: "+itemName)
 	}
@@ -60,21 +60,41 @@ func AddItemToList(ctx context.Context, itemName string, itemDescription string)
 	return nil
 }
 
-func UpdateListItem(ctx context.Context, itemName string, itemDescription string) error {
+func UpdateListItemDescription(ctx context.Context, itemName string, itemDescription string) error {
 	var updateItemIndex int = -2
-	for index, lItem := range list.LItems {
+	for index, lItem := range List.LItems {
 		if lItem.Name == itemName {
 			updateItemIndex = index
 			break
 		}
 	}
 	if updateItemIndex > -2 {
-		list.LItems[updateItemIndex].Description = itemDescription
-		logger.InfoLog(ctx, "Item Updated: "+itemName+" in list: "+list.Name)
-		err := saveList(ctx)
-		if err != nil {
-			return err
+		List.LItems[updateItemIndex].Description = itemDescription
+		logger.InfoLog(ctx, "Item Updated (Description): "+itemName+" in List: "+List.Name)
+	} else {
+		logger.InfoLog(ctx, "Cannot find Item to update: "+itemName)
+	}
+
+	return nil
+}
+
+func UpdateListItemStatus(ctx context.Context, itemName string, itemStatus string) error {
+
+	if itemStatus != StatusNotStarted && itemStatus != StatusStarted && itemStatus != StatusCompleted {
+		err := errors.New("Invalid status provided: " + itemStatus)
+		return err
+	}
+
+	var updateItemIndex int = -2
+	for index, lItem := range List.LItems {
+		if lItem.Name == itemName {
+			updateItemIndex = index
+			break
 		}
+	}
+	if updateItemIndex > -2 {
+		List.LItems[updateItemIndex].Status = itemStatus
+		logger.InfoLog(ctx, "Item Updated (Status): "+itemName+" in List: "+List.Name)
 	} else {
 		logger.InfoLog(ctx, "Cannot find Item to update: "+itemName)
 	}
@@ -84,19 +104,15 @@ func UpdateListItem(ctx context.Context, itemName string, itemDescription string
 
 func DeleteItemFromList(ctx context.Context, itemName string) error {
 	var deleteItemIndex int = -2
-	for index, lItem := range list.LItems {
+	for index, lItem := range List.LItems {
 		if lItem.Name == itemName {
 			deleteItemIndex = index
 			break
 		}
 	}
 	if deleteItemIndex > -2 {
-		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-		logger.InfoLog(ctx, "Item Deleted: "+itemName+" from list: "+list.Name)
-		err := saveList(ctx)
-		if err != nil {
-			return err
-		}
+		List.LItems = append(List.LItems[:deleteItemIndex], List.LItems[deleteItemIndex+1:]...)
+		logger.InfoLog(ctx, "Item Deleted: "+itemName+" from List: "+List.Name)
 	} else {
 		logger.InfoLog(ctx, "Cannot find Item to delete: "+itemName)
 	}
@@ -129,9 +145,9 @@ func getList(ctx context.Context, todoListName string) (*TodoList, error) {
 	return &list, nil
 }
 
-func saveList(ctx context.Context) error {
+func SaveList(ctx context.Context) error {
 
-	list_bb, err := json.Marshal(list)
+	list_bb, err := json.Marshal(List)
 	if err != nil {
 		return err
 	}

@@ -39,9 +39,13 @@ func main() {
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
 		err = todostore.AddItemToList(ctx, *todoAddItemName, *todoAddItemDescription)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
-		err = todostore.UpdateListItem(ctx, *todoUpdateItemName, *todoUpdateItemDescription)
+		err = todostore.UpdateListItemDescription(ctx, *todoUpdateItemName, *todoUpdateItemDescription)
 	} else if *todoDeleteItemName != "" {
 		err = todostore.DeleteItemFromList(ctx, *todoDeleteItemName)
+	}
+
+	if err == nil {
+		todostore.SaveList(ctx)
 	}
 
 	if err != nil {

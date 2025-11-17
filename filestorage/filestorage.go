@@ -63,8 +63,6 @@ func LoadFileToByteSlice() ([]byte, error) {
 			continue
 		}
 		if n > 0 {
-			//fmt.Println(string(buf[:n]))
-			//b = append(b, buf...)
 			b = append(b, buf[:n]...)
 		}
 	}
