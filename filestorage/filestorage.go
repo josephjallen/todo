@@ -44,7 +44,13 @@ func SaveByteSliceToFile(val []byte) error {
 	return nil
 }
 
-func LoadFileToByteSlice() ([]byte, error) {
+func LoadFileToByteSlice(ctx context.Context) ([]byte, error) {
+	_, err := os.Stat(fileStorage.Name)
+	if os.IsNotExist(err) {
+		logger.InfoLog(ctx, "File does not exist: "+fileStorage.Name)
+		return nil, nil
+	}
+
 	f, err := os.OpenFile(fileStorage.Name, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
