@@ -60,8 +60,7 @@ func addTraceIDLayer(next http.Handler) http.Handler {
 			var err error
 			traceID = ctx.Value(logger.TraceIdKey{}).(string)
 			if err != nil {
-				// If generation fails, return 500
-				http.Error(w, "unable to generate trace id", http.StatusInternalServerError)
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Unable to generate trace id"})
 				return
 			}
 		}
