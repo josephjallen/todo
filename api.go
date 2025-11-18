@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var ctx context.Context = context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
+var ctx context.Context
 
 type CreateListRequest struct {
 	ID           string `json:"ID"`
@@ -56,13 +56,19 @@ func addTraceIDLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		traceID := r.Header.Get("X-Trace-ID")
-		if traceID == "" {
-			var err error
-			traceID = ctx.Value(logger.TraceIdKey{}).(string)
-			if err != nil {
-				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Unable to generate trace id"})
+		if traceID != "" {
+			if ctx != nil && traceID != ctx.Value(logger.TraceIdKey{}).(string) {
+				w.Header().Set("X-Trace-ID", traceID)
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Currently unable to handle multiple trace ids"})
 				return
+			} else if ctx == nil {
+				ctx = context.WithValue(context.Background(), logger.TraceIdKey{}, traceID)
 			}
+		} else {
+			if ctx == nil {
+				ctx = context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
+			}
+			traceID = ctx.Value(logger.TraceIdKey{}).(string)
 		}
 
 		w.Header().Set("X-Trace-ID", traceID)
