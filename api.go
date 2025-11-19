@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
+	"errors"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 	"todo/logger"
 	"todo/todostore"
@@ -72,6 +74,14 @@ func addTraceIDLayer(next http.Handler) http.Handler {
 		}
 
 		w.Header().Set("X-Trace-ID", traceID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func addLogLayer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger.InfoLog(ctx, "Request Recieved: "+r.Method+" "+r.URL.Path)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -284,7 +294,6 @@ func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 go run api.go
 */
 func main() {
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/createlist", createListHandler)
@@ -294,7 +303,8 @@ func main() {
 	mux.HandleFunc("/updateitemdescription", updateItemDescriptionHandler)
 	mux.HandleFunc("/updateitemstatus", updateItemStatusHandler)
 
-	handler := addTraceIDLayer(mux)
+	handler := addLogLayer(mux)
+	handler = addTraceIDLayer(handler)
 
 	srv := &http.Server{
 		Addr:         ":8080",
@@ -303,6 +313,28 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	fmt.Println("Server listening on :8080")
-	log.Fatal(srv.ListenAndServe())
+	// Parallel goroutine to handle shutdown signals
+	go func() {
+		logger.InfoLog(ctx, "Server listening on :8080")
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			logger.ErrorLog(ctx, "HTTP server Close error: "+err.Error())
+		}
+		logger.InfoLog(ctx, "Server stopped listening on :8080")
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownRelease()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.ErrorLog(ctx, "HTTP shutdown error: "+err.Error())
+		err = srv.Close()
+		if err != nil {
+			logger.ErrorLog(ctx, "Server shutdown error: "+err.Error())
+		}
+	}
+	logger.InfoLog(ctx, "Shutdown complete")
 }

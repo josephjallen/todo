@@ -35,7 +35,7 @@ func Init(ctx context.Context, todoListName string) error {
 			return err
 		}
 	} else {
-		logger.WarningLog(ctx, "TodoStore Single instance already created.")
+		logger.InfoLog(ctx, "TodoStore Single instance already created.")
 	}
 
 	return nil
