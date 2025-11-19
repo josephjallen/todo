@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
+	"strings"
 	"syscall"
 	"time"
 	"todo/logger"
@@ -290,6 +292,13 @@ func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": todostore.List})
 }
 
+func dynamicListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
+
+	//_ = json.NewEncoder(w).Encode(v)
+}
+
 /*
 go run api.go
 */
@@ -302,6 +311,14 @@ func main() {
 	mux.HandleFunc("/deleteitem", deleteItemHandler)
 	mux.HandleFunc("/updateitemdescription", updateItemDescriptionHandler)
 	mux.HandleFunc("/updateitemstatus", updateItemStatusHandler)
+	mux.HandleFunc("/list", dynamicListHandler)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(strings.ToLower(r.URL.Path), ".html") {
+			http.ServeFile(w, r, "./static/"+path.Base(r.URL.Path))
+		} else {
+			http.ServeFile(w, r, "./static/"+path.Base(r.URL.Path)+".html")
+		}
+	})
 
 	handler := addLogLayer(mux)
 	handler = addTraceIDLayer(handler)
@@ -313,7 +330,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	// Parallel goroutine to handle shutdown signals
+	// Parallel goroutine to run the server
 	go func() {
 		logger.InfoLog(ctx, "Server listening on :8080")
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
