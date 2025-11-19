@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,8 +17,6 @@ import (
 
 	"github.com/google/uuid"
 )
-
-var ctx context.Context
 
 type CreateListRequest struct {
 	ID           string `json:"ID"`
@@ -60,22 +59,12 @@ func addTraceIDLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		traceID := r.Header.Get("X-Trace-ID")
-		if traceID != "" {
-			if ctx != nil && traceID != ctx.Value(logger.TraceIdKey{}).(string) {
-				w.Header().Set("X-Trace-ID", traceID)
-				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Currently unable to handle multiple trace ids"})
-				return
-			} else if ctx == nil {
-				ctx = context.WithValue(context.Background(), logger.TraceIdKey{}, traceID)
-			}
-		} else {
-			if ctx == nil {
-				ctx = context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
-			}
-			traceID = ctx.Value(logger.TraceIdKey{}).(string)
+		if traceID == "" {
+			traceID = uuid.NewString()
+			w.Header().Set("X-Trace-ID", traceID)
 		}
 
-		w.Header().Set("X-Trace-ID", traceID)
+		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, traceID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -83,9 +72,9 @@ func addTraceIDLayer(next http.Handler) http.Handler {
 
 func addLogLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.InfoLog(ctx, "Request Recieved: "+r.Method+" "+r.URL.Path)
+		logger.InfoLog(r.Context(), "Request Recieved: "+r.Method+" "+r.URL.Path)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -107,13 +96,13 @@ func createListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, cr.TodoListName)
+	err := todostore.CheckListExists(r.Context(), cr.TodoListName)
 	if err == nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "List already exists: " + cr.TodoListName})
 		return
 	}
 
-	err = todostore.Init(ctx, cr.TodoListName)
+	err = todostore.Init(r.Context(), cr.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -135,13 +124,13 @@ func getListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, gr.TodoListName)
+	err := todostore.CheckListExists(r.Context(), gr.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.Init(ctx, gr.TodoListName)
+	err = todostore.Init(r.Context(), gr.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -164,20 +153,20 @@ func addItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, ar.TodoListName)
+	err := todostore.CheckListExists(r.Context(), ar.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.Init(ctx, ar.TodoListName)
+	err = todostore.Init(r.Context(), ar.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.AddItemToList(ctx, ar.ItemName, ar.ItemDescription)
+	err = todostore.AddItemToList(r.Context(), ar.ItemName, ar.ItemDescription)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -199,20 +188,20 @@ func deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, dr.TodoListName)
+	err := todostore.CheckListExists(r.Context(), dr.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.Init(ctx, dr.TodoListName)
+	err = todostore.Init(r.Context(), dr.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.DeleteItemFromList(ctx, dr.ItemName)
+	err = todostore.DeleteItemFromList(r.Context(), dr.ItemName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -234,20 +223,20 @@ func updateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, ur.TodoListName)
+	err := todostore.CheckListExists(r.Context(), ur.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.Init(ctx, ur.TodoListName)
+	err = todostore.Init(r.Context(), ur.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.UpdateListItemDescription(ctx, ur.ItemName, ur.ItemDescription)
+	err = todostore.UpdateListItemDescription(r.Context(), ur.ItemName, ur.ItemDescription)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -269,20 +258,20 @@ func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := todostore.CheckListExists(ctx, ur.TodoListName)
+	err := todostore.CheckListExists(r.Context(), ur.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.Init(ctx, ur.TodoListName)
+	err = todostore.Init(r.Context(), ur.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.UpdateListItemStatus(ctx, ur.ItemName, ur.ItemStatus)
+	err = todostore.UpdateListItemStatus(r.Context(), ur.ItemName, ur.ItemStatus)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
@@ -296,7 +285,71 @@ func dynamicListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
-	//_ = json.NewEncoder(w).Encode(v)
+	err := todostore.Init(r.Context(), "TodoList1")
+	if err != nil {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		return
+	}
+
+	var theader *template.Template
+	theader, err = template.New("todolistheader").Parse(`<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+
+<h2>` + todostore.List.Name + `</h2>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Status</th>
+  </tr>`)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	err = theader.Execute(w, nil)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	/*var tlistitems *template.Template
+	tlistitems, err = template.New("todolistfooter").Parse(`</table></body></html>`)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	err = tfooter.Execute(w, nil)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}*/
+
+	var tfooter *template.Template
+	tfooter, err = template.New("todolistfooter").Parse(`</table></body></html>`)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	err = tfooter.Execute(w, nil)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
 }
 
 /*
@@ -332,11 +385,11 @@ func main() {
 
 	// Parallel goroutine to run the server
 	go func() {
-		logger.InfoLog(ctx, "Server listening on :8080")
+		logger.InfoLog(nil, "Server listening on :8080")
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logger.ErrorLog(ctx, "HTTP server Close error: "+err.Error())
+			logger.ErrorLog(nil, "HTTP server Close error: "+err.Error())
 		}
-		logger.InfoLog(ctx, "Server stopped listening on :8080")
+		logger.InfoLog(nil, "Server stopped listening on :8080")
 	}()
 
 	sigChan := make(chan os.Signal, 1)
@@ -347,11 +400,11 @@ func main() {
 	defer shutdownRelease()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.ErrorLog(ctx, "HTTP shutdown error: "+err.Error())
+		logger.ErrorLog(nil, "HTTP shutdown error: "+err.Error())
 		err = srv.Close()
 		if err != nil {
-			logger.ErrorLog(ctx, "Server shutdown error: "+err.Error())
+			logger.ErrorLog(nil, "Server shutdown error: "+err.Error())
 		}
 	}
-	logger.InfoLog(ctx, "Shutdown complete")
+	logger.InfoLog(nil, "Shutdown complete")
 }
