@@ -14,6 +14,7 @@ import (
 go run cli.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop
 go run cli.go -todoList=todod1 -deleteitemname=monday
 go run cli.go -todoList=todod1 -updateitemname=monday -updateitemdescription=gotoshop_updated
+go run cli.go -todoList=todod1 -updateitemname=monday -updateitemstatus=started
 */
 func main() {
 
@@ -25,27 +26,26 @@ func main() {
 
 	todoUpdateItemName := flag.String("updateitemname", "", "")
 	todoUpdateItemDescription := flag.String("updateitemdescription", "", "")
+	todoUpdateItemStatus := flag.String("updateitemstatus", "", "")
 
 	todoDeleteItemName := flag.String("deleteitemname", "", "")
 
 	flag.Parse()
 
-	err := todostore.Init(ctx, *todoListName)
-
-	if err != nil {
-		logger.ErrorLog(ctx, err.Error())
-	}
+	var err error
 
 	if *todoAddItemName != "" && *todoAddItemDescription != "" {
-		err = todostore.AddItemToList(ctx, *todoAddItemName, *todoAddItemDescription)
+		err = todostore.AddItemToList(ctx, *todoListName, *todoAddItemName, *todoAddItemDescription)
 	} else if *todoUpdateItemName != "" && *todoUpdateItemDescription != "" {
-		err = todostore.UpdateListItemDescription(ctx, *todoUpdateItemName, *todoUpdateItemDescription)
+		err = todostore.UpdateListItemDescription(ctx, *todoListName, *todoUpdateItemName, *todoUpdateItemDescription)
+	} else if *todoUpdateItemName != "" && *todoUpdateItemStatus != "" {
+		err = todostore.UpdateListItemStatus(ctx, *todoListName, *todoUpdateItemName, *todoUpdateItemStatus)
 	} else if *todoDeleteItemName != "" {
-		err = todostore.DeleteItemFromList(ctx, *todoDeleteItemName)
+		err = todostore.DeleteItemFromList(ctx, *todoListName, *todoDeleteItemName)
 	}
 
 	if err == nil {
-		todostore.SaveList(ctx)
+		todostore.SaveList(ctx, *todoListName)
 	}
 
 	if err != nil {

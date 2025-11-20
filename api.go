@@ -19,37 +19,31 @@ import (
 )
 
 type CreateListRequest struct {
-	ID           string `json:"ID"`
 	TodoListName string `json:"TodoListName"`
 }
 
 type GetListRequest struct {
-	ID           string `json:"ID"`
 	TodoListName string `json:"TodoListName"`
 }
 
 type AddItemRequest struct {
-	ID              string `json:"ID"`
 	TodoListName    string `json:"TodoListName"`
 	ItemName        string `json:"ItemName"`
 	ItemDescription string `json:"ItemDescription"`
 }
 
 type DeleteItemRequest struct {
-	ID           string `json:"ID"`
 	ItemName     string `json:"ItemName"`
 	TodoListName string `json:"TodoListName"`
 }
 
 type UpdateItemDescriptionRequest struct {
-	ID              string `json:"ID"`
 	TodoListName    string `json:"TodoListName"`
 	ItemName        string `json:"ItemName"`
 	ItemDescription string `json:"ItemDescription"`
 }
 
 type UpdateItemStatusRequest struct {
-	ID           string `json:"ID"`
 	TodoListName string `json:"TodoListName"`
 	ItemName     string `json:"ItemName"`
 	ItemStatus   string `json:"ItemStatus"`
@@ -78,6 +72,7 @@ func addLogLayer(next http.Handler) http.Handler {
 	})
 }
 
+/* DEFAULTS TO 200, SO THIS MIGHT NOT NEED TO BE CALLED UNLESS THERE IS AN ERROR */
 func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -91,19 +86,8 @@ func createListHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if cr.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), cr.TodoListName)
-	if err == nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "List already exists: " + cr.TodoListName})
-		return
-	}
-
-	err = todostore.Init(r.Context(), cr.TodoListName)
-
+	_, err := todostore.CreateList(r.Context(), cr.TodoListName)
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
@@ -119,25 +103,15 @@ func getListHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if gr.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), gr.TodoListName)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
-		return
-	}
-
-	err = todostore.Init(r.Context(), gr.TodoListName)
+	list, err := todostore.GetList(r.Context(), gr.TodoListName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"todoList": todostore.List})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"todoList": list})
 
 }
 
@@ -148,32 +122,14 @@ func addItemHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if ar.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), ar.TodoListName)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
-		return
-	}
-
-	err = todostore.Init(r.Context(), ar.TodoListName)
-
+	err := todostore.AddItemToList(r.Context(), ar.TodoListName, ar.ItemName, ar.ItemDescription)
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.AddItemToList(r.Context(), ar.ItemName, ar.ItemDescription)
-
-	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Add Item To TodoList": todostore.List})
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"Add Item To TodoList": ar.TodoListName})
 }
 
 func deleteItemHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,32 +139,15 @@ func deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if dr.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), dr.TodoListName)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
-		return
-	}
-
-	err = todostore.Init(r.Context(), dr.TodoListName)
+	err := todostore.DeleteItemFromList(r.Context(), dr.TodoListName, dr.ItemName)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.DeleteItemFromList(r.Context(), dr.ItemName)
-
-	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
-		return
-	}
-
-	writeJSON(w, http.StatusAccepted, map[string]interface{}{"Deleted Item To TodoList": todostore.List})
+	writeJSON(w, http.StatusAccepted, map[string]interface{}{"Deleted Item To TodoList": dr.TodoListName})
 }
 
 func updateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
@@ -218,32 +157,14 @@ func updateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if ur.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), ur.TodoListName)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
-		return
-	}
-
-	err = todostore.Init(r.Context(), ur.TodoListName)
-
+	err := todostore.UpdateListItemDescription(r.Context(), ur.TodoListName, ur.ItemName, ur.ItemDescription)
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.UpdateListItemDescription(r.Context(), ur.ItemName, ur.ItemDescription)
-
-	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": todostore.List})
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": ur.TodoListName})
 }
 
 func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -253,39 +174,22 @@ func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	if ur.TodoListName == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "TodoListName required"})
-		return
-	}
 
-	err := todostore.CheckListExists(r.Context(), ur.TodoListName)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
-		return
-	}
-
-	err = todostore.Init(r.Context(), ur.TodoListName)
+	err := todostore.UpdateListItemStatus(r.Context(), ur.TodoListName, ur.ItemName, ur.ItemStatus)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
 
-	err = todostore.UpdateListItemStatus(r.Context(), ur.ItemName, ur.ItemStatus)
-
-	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": todostore.List})
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": ur.TodoListName})
 }
 
 func dynamicListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
-	err := todostore.Init(r.Context(), "TodoList1")
+	list, err := todostore.GetList(r.Context(), "TodoList1")
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
@@ -315,7 +219,7 @@ tr:nth-child(even) {
 </head>
 <body>
 
-<h2>` + todostore.List.Name + `</h2>
+<h2>` + list.Name + `</h2>
 <table>
   <tr>
     <th>Name</th>
@@ -329,6 +233,7 @@ tr:nth-child(even) {
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	/* TEMPLATING PASS IN STRUCT AND THAT SHOULD POP HTML LIST PLACEHOLDER */
 
 	/*var tlistitems *template.Template
 	tlistitems, err = template.New("todolistfooter").Parse(`</table></body></html>`)
