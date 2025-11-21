@@ -26,12 +26,13 @@ func main() {
 	mux.HandleFunc("/deleteitem", web.DeleteItemHandler)
 	mux.HandleFunc("/updateitemdescription", web.UpdateItemDescriptionHandler)
 	mux.HandleFunc("/updateitemstatus", web.UpdateItemStatusHandler)
-	mux.HandleFunc("/list", web.DynamicListHandler)
+	/* http://127.0.0.1:8080/list/weeklytodo */
+	mux.HandleFunc("/list/{listname}", web.DynamicListHandler)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(strings.ToLower(r.URL.Path), ".html") {
-			http.ServeFile(w, r, "./static/"+path.Base(r.URL.Path))
+			http.ServeFile(w, r, "./web/static/"+path.Base(r.URL.Path))
 		} else {
-			http.ServeFile(w, r, "./static/"+path.Base(r.URL.Path)+".html")
+			http.ServeFile(w, r, "./web/static/"+path.Base(r.URL.Path)+".html")
 		}
 	})
 

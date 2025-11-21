@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+
+<h1>{{ .Name }}</h1>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Status</th>
+  </tr>
+
+  {{ range $id, $todo := .LItems }}
+  <tr>
+    <td>{{$todo.Name}}</td>
+    <td>{{$todo.Description}}</td>
+    <td>{{$todo.Status}}</td>
+  </tr>
+  {{else}}
+  <td>No todos</td>
+  {{end}}
+</table>
+
+</body>
+</html>

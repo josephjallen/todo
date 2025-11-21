@@ -152,74 +152,12 @@ func DynamicListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 
-	list, err := todostore.GetList(r.Context(), "TodoList1")
+	list, err := todostore.GetList(r.Context(), r.PathValue("listname"))
 	if err != nil {
 		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err retrieving list"}, err)
 		return
 	}
 
-	var theader *template.Template
-	theader, err = template.New("todolistheader").Parse(`<!DOCTYPE html>
-<html>
-<head>
-<style>
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
-}
-</style>
-</head>
-<body>
-
-<h2>` + list.Name + `</h2>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Description</th>
-    <th>Status</th>
-  </tr>`)
-	if err != nil {
-		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
-		return
-	}
-	err = theader.Execute(w, nil)
-	if err != nil {
-		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
-		return
-	}
-	/* TEMPLATING PASS IN STRUCT AND THAT SHOULD POP HTML LIST PLACEHOLDER */
-
-	/*var tlistitems *template.Template
-	tlistitems, err = template.New("todolistfooter").Parse(`</table></body></html>`)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	err = tfooter.Execute(w, nil)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}*/
-
-	var tfooter *template.Template
-	tfooter, err = template.New("todolistfooter").Parse(`</table></body></html>`)
-	if err != nil {
-		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
-		return
-	}
-	err = tfooter.Execute(w, nil)
-	if err != nil {
-		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
-		return
-	}
-
+	tmpl := template.Must(template.ParseFiles("./web/dynamic/list.html"))
+	tmpl.Execute(w, list)
 }
