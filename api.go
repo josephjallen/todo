@@ -49,6 +49,14 @@ type UpdateItemStatusRequest struct {
 	ItemStatus   string `json:"ItemStatus"`
 }
 
+type MessageResponse struct {
+	Message string `json:"Message"`
+}
+
+type ListResponse struct {
+	List todostore.TodoList `json:"TodoList"`
+}
+
 func addTraceIDLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -72,10 +80,16 @@ func addLogLayer(next http.Handler) http.Handler {
 	})
 }
 
-/* DEFAULTS TO 200, SO THIS MIGHT NOT NEED TO BE CALLED UNLESS THERE IS AN ERROR */
-func writeJSON(w http.ResponseWriter, status int, v interface{}) {
+func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interface{}, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+	b, err := json.Marshal(v)
+	if status >= 200 && status < 300 {
+		logger.InfoLog(ctx, "Response: "+string(b))
+	} else if status >= 400 {
+		logger.ErrorLog(ctx, "Response: "+string(b)+" Error: "+err.Error())
+	}
+	logger.InfoLog(ctx, string(b))
 	_ = json.NewEncoder(w).Encode(v)
 }
 
@@ -83,106 +97,102 @@ func createListHandler(w http.ResponseWriter, r *http.Request) {
 
 	var cr CreateListRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	_, err := todostore.CreateList(r.Context(), cr.TodoListName)
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err creating list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"ok": true, "createrequest": cr})
+	writeJSON(r.Context(), http.StatusCreated, w, MessageResponse{Message: "Created List: " + cr.TodoListName}, nil)
 }
 
 func getListHandler(w http.ResponseWriter, r *http.Request) {
 
 	var gr GetListRequest
 	if err := json.NewDecoder(r.Body).Decode(&gr); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	list, err := todostore.GetList(r.Context(), gr.TodoListName)
-
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err retrieving list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"todoList": list})
-
+	writeJSON(r.Context(), http.StatusOK, w, ListResponse{List: *list}, nil)
 }
 
 func addItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	var ar AddItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	err := todostore.AddItemToList(r.Context(), ar.TodoListName, ar.ItemName, ar.ItemDescription)
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err updating list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Add Item To TodoList": ar.TodoListName})
+	writeJSON(r.Context(), http.StatusCreated, w, MessageResponse{Message: "Added Item to List: " + ar.TodoListName}, nil)
 }
 
 func deleteItemHandler(w http.ResponseWriter, r *http.Request) {
 
 	var dr DeleteItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&dr); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	err := todostore.DeleteItemFromList(r.Context(), dr.TodoListName, dr.ItemName)
-
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err deleting list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusAccepted, map[string]interface{}{"Deleted Item To TodoList": dr.TodoListName})
+	writeJSON(r.Context(), http.StatusCreated, w, MessageResponse{Message: "Deleted Item From TodoList: " + dr.TodoListName}, nil)
 }
 
 func updateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
 
 	var ur UpdateItemDescriptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&ur); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	err := todostore.UpdateListItemDescription(r.Context(), ur.TodoListName, ur.ItemName, ur.ItemDescription)
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err updating list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": ur.TodoListName})
+	writeJSON(r.Context(), http.StatusCreated, w, MessageResponse{Message: "Updated TodoList: " + ur.TodoListName}, nil)
 }
 
 func updateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	var ur UpdateItemStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&ur); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeJSON(r.Context(), http.StatusBadRequest, w, MessageResponse{Message: "Invalid JSON"}, err)
 		return
 	}
 
 	err := todostore.UpdateListItemStatus(r.Context(), ur.TodoListName, ur.ItemName, ur.ItemStatus)
-
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err updating list"}, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{"Updated TodoList": ur.TodoListName})
+	writeJSON(r.Context(), http.StatusCreated, w, MessageResponse{Message: "Updated TodoList: " + ur.TodoListName}, nil)
 }
 
 func dynamicListHandler(w http.ResponseWriter, r *http.Request) {
@@ -191,7 +201,7 @@ func dynamicListHandler(w http.ResponseWriter, r *http.Request) {
 
 	list, err := todostore.GetList(r.Context(), "TodoList1")
 	if err != nil {
-		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusConflict, w, MessageResponse{Message: "Err retrieving list"}, err)
 		return
 	}
 
@@ -227,11 +237,13 @@ tr:nth-child(even) {
     <th>Status</th>
   </tr>`)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
+		return
 	}
 	err = theader.Execute(w, nil)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
+		return
 	}
 	/* TEMPLATING PASS IN STRUCT AND THAT SHOULD POP HTML LIST PLACEHOLDER */
 
@@ -248,11 +260,13 @@ tr:nth-child(even) {
 	var tfooter *template.Template
 	tfooter, err = template.New("todolistfooter").Parse(`</table></body></html>`)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
+		return
 	}
 	err = tfooter.Execute(w, nil)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		writeJSON(r.Context(), http.StatusInternalServerError, w, MessageResponse{Message: "Internal Err"}, err)
+		return
 	}
 
 }

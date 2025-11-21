@@ -99,14 +99,16 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 	if err != nil {
 		return err
 	}
-	var updateItemIndex int = -2
+	var itemFound bool = false
+	var updateItemIndex int
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			updateItemIndex = index
+			itemFound = true
 			break
 		}
 	}
-	if updateItemIndex > -2 {
+	if itemFound {
 		list.LItems[updateItemIndex].Description = itemDescription
 		logger.InfoLog(ctx, "Item Updated (Description): "+itemName+" in List: "+list.Name)
 	} else {
@@ -126,14 +128,16 @@ func UpdateListItemStatus(ctx context.Context, listName string, itemName string,
 		return err
 	}
 
-	var updateItemIndex int = -2
+	var itemFound bool = false
+	var updateItemIndex int
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			updateItemIndex = index
+			itemFound = true
 			break
 		}
 	}
-	if updateItemIndex > -2 {
+	if itemFound {
 		list.LItems[updateItemIndex].Status = itemStatus
 		logger.InfoLog(ctx, "Item Updated (Status): "+itemName+" in List: "+list.Name)
 	} else {
@@ -148,14 +152,16 @@ func DeleteItemFromList(ctx context.Context, listName string, itemName string) e
 	if err != nil {
 		return err
 	}
-	var deleteItemIndex int = -2
+	var itemFound bool = false
+	var deleteItemIndex int
 	for index, lItem := range list.LItems {
 		if lItem.Name == itemName {
 			deleteItemIndex = index
+			itemFound = true
 			break
 		}
 	}
-	if deleteItemIndex > -2 {
+	if itemFound {
 		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
 		logger.InfoLog(ctx, "Item Deleted: "+itemName+" from List: "+list.Name)
 	} else {
