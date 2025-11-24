@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"todo/actors"
 	"todo/logger"
 	"todo/web"
 )
@@ -37,6 +38,7 @@ func main() {
 	})
 
 	handler := web.AddLogLayer(mux)
+	handler = web.AddHandlerWithActorLayer(handler)
 	handler = web.AddTraceIDLayer(handler)
 
 	srv := &http.Server{
@@ -45,6 +47,22 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
+
+	actorManager := actors.GetActorManager()
+
+	// register local actors
+	actorManager.RegisterActor("actor1")
+
+	go func() {
+		// process messages in all actors
+		for ok := true; ok; {
+			time.Sleep(1 * time.Second)
+			for _, actor := range actorManager.Actors {
+				actor.ProcessMessages()
+			}
+		}
+		logger.InfoLog(nil, "Stopped processing actor messages")
+	}()
 
 	// Parallel goroutine to run the server
 	go func() {

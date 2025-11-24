@@ -132,7 +132,7 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 		list.LItems[updateItemIndex].Description = itemDescription
 		logger.InfoLog(ctx, "Item Updated (Description): "+itemName+" in List: "+list.Name)
 	} else {
-		return nil //errors.New("Cannot find Item to update: " + itemName)
+		return errors.New("Cannot find Item to update: " + itemName)
 	}
 
 	return nil

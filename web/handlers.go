@@ -5,11 +5,27 @@ import (
 	"encoding/json"
 	"html/template"
 	"net/http"
+	"todo/actors"
 	"todo/logger"
 	"todo/todostore"
 
 	"github.com/google/uuid"
 )
+
+func AddHandlerWithActorLayer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		channel := make(chan http.ResponseWriter)
+		actors.GetActorManager().SendMessage(actors.Message{
+			Hand: next,
+			Resp: w,
+			Req:  r,
+			Chan: channel,
+		})
+
+		w = <-channel
+	})
+}
 
 func AddTraceIDLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +61,18 @@ func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interfa
 	}
 	_ = json.NewEncoder(w).Encode(v)
 }
+
+/*func CreateListHandler(w http.ResponseWriter, r *http.Request) {
+	channel := make(chan http.ResponseWriter)
+	actors.GetActorManager().SendMessage(actors.Message{
+		Hand: CreateListHandler_,
+		Resp: w,
+		Req:  r,
+		Chan: channel,
+	})
+
+	w = <-channel
+}*/
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
