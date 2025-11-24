@@ -56,12 +56,11 @@ func main() {
 	go func() {
 		// process messages in all actors
 		for ok := true; ok; {
-			time.Sleep(1 * time.Second)
 			for _, actor := range actorManager.Actors {
-				actor.ProcessMessages()
-			}
+					actor.ProcessMessages()
+				}
+			time.Sleep(1 * time.Second)
 		}
-		logger.InfoLog(nil, "Stopped processing actor messages")
 	}()
 
 	// Parallel goroutine to run the server
@@ -72,11 +71,10 @@ func main() {
 		}
 		logger.InfoLog(nil, "Server stopped listening on :8080")
 	}()
-
+	
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
-
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 

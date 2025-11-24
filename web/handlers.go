@@ -62,18 +62,6 @@ func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interfa
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-/*func CreateListHandler(w http.ResponseWriter, r *http.Request) {
-	channel := make(chan http.ResponseWriter)
-	actors.GetActorManager().SendMessage(actors.Message{
-		Hand: CreateListHandler_,
-		Resp: w,
-		Req:  r,
-		Chan: channel,
-	})
-
-	w = <-channel
-}*/
-
 func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
 	var cr CreateListRequest
