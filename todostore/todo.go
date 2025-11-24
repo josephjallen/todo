@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
 	"todo/filestorage"
 	"todo/logger"
 )
@@ -21,15 +22,34 @@ type TodoListItem struct {
 
 var lists map[string]*TodoList = make(map[string]*TodoList)
 
+var mutex sync.Mutex
+
 const (
 	StatusNotStarted string = "not started"
 	StatusStarted    string = "started"
 	StatusCompleted  string = "completed"
 )
 
-func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
+func readFromMap(todoListName string) *TodoList {
+	mutex.Lock()
+	defer mutex.Unlock()
 	list, ok := lists[todoListName]
-	if !ok {
+	if ok {
+		return list
+	} else {
+		return nil
+	}
+}
+
+func writeToMap(todoListName string, list TodoList) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	lists[todoListName] = &list
+}
+
+func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
+	list := readFromMap(todoListName)
+	if list == nil {
 		logger.InfoLog(ctx, "Init TodoStore for todolist: "+todoListName)
 		var err error
 		list, err = retrieveListFromFile(ctx, todoListName)
@@ -40,7 +60,7 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 			logger.InfoLog(ctx, "Creating todo list: "+todoListName)
 			list = &TodoList{Name: todoListName}
 		}
-		lists[todoListName] = list
+		writeToMap(todoListName, *list)
 		logger.InfoLog(ctx, "Added list to TodoStore: "+todoListName)
 	}
 
@@ -48,8 +68,8 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 }
 
 func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
-	list, ok := lists[todoListName]
-	if ok {
+	list := readFromMap(todoListName)
+	if list != nil {
 		return list, errors.New("List already exists: " + todoListName)
 	}
 
@@ -65,7 +85,7 @@ func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
 	list = &TodoList{Name: todoListName}
 
 	logger.InfoLog(ctx, "Adding list to TodoStore: "+todoListName)
-	lists[todoListName] = list
+	writeToMap(todoListName, *list)
 
 	return list, nil
 }
@@ -112,7 +132,7 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 		list.LItems[updateItemIndex].Description = itemDescription
 		logger.InfoLog(ctx, "Item Updated (Description): "+itemName+" in List: "+list.Name)
 	} else {
-		return errors.New("Cannot find Item to update: " + itemName)
+		return nil //errors.New("Cannot find Item to update: " + itemName)
 	}
 
 	return nil

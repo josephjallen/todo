@@ -37,7 +37,7 @@ func AddLogLayer(next http.Handler) http.Handler {
 func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interface{}, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	b, err := json.Marshal(v)
+	b, _ := json.Marshal(v)
 	if status >= 200 && status < 300 {
 		logger.InfoLog(ctx, "Response: "+string(b))
 	} else if status >= 400 {
