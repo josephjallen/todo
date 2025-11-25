@@ -1,7 +1,5 @@
 package web
 
-import "todo/todostore"
-
 type CreateListRequest struct {
 	TodoListName string `json:"TodoListName"`
 }
@@ -31,12 +29,4 @@ type UpdateItemStatusRequest struct {
 	TodoListName string `json:"TodoListName"`
 	ItemName     string `json:"ItemName"`
 	ItemStatus   string `json:"ItemStatus"`
-}
-
-type MessageResponse struct {
-	Message string `json:"Message"`
-}
-
-type ListResponse struct {
-	List todostore.TodoList `json:"TodoList"`
 }

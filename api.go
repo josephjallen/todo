@@ -13,13 +13,18 @@ import (
 	"todo/actors"
 	"todo/logger"
 	"todo/web"
+
 	"github.com/google/uuid"
 )
 
 /*
 go run api.go
+http://127.0.0.1:8080/about
+http://127.0.0.1:8080/list/weeklytodo
 */
 func main() {
+	ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/createlist", web.CreateListHandler)
@@ -28,7 +33,6 @@ func main() {
 	mux.HandleFunc("/deleteitem", web.DeleteItemHandler)
 	mux.HandleFunc("/updateitemdescription", web.UpdateItemDescriptionHandler)
 	mux.HandleFunc("/updateitemstatus", web.UpdateItemStatusHandler)
-	/* http://127.0.0.1:8080/list/weeklytodo */
 	mux.HandleFunc("/list/{listname}", web.DynamicListHandler)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(strings.ToLower(r.URL.Path), ".html") {
@@ -38,8 +42,7 @@ func main() {
 		}
 	})
 
-	handler := web.AddHandlerWithActorLayer(mux)
-	handler = web.AddLogLayer(handler)
+	handler := web.AddLogLayer(mux)
 	handler = web.AddTraceIDLayer(handler)
 
 	srv := &http.Server{
@@ -67,22 +70,24 @@ func main() {
 		}
 		logger.InfoLog(ctx, "Server stopped listening on :8080")
 	}()
-	
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
-	actors.GetActor().Messages<-actors.Message{
-			Quit: true,
-		}
+	actors.GetActor().Messages <- actors.Message{
+		Request: actors.Request{Operation: "quit"},
+		Ctx:     ctx,
+		Quit:    true,
+	}
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.ErrorLog(nil, "HTTP shutdown error: "+err.Error())
+		logger.ErrorLog(ctx, "HTTP shutdown error: "+err.Error())
 		err = srv.Close()
 		if err != nil {
-			logger.ErrorLog(nil, "Server shutdown error: "+err.Error())
+			logger.ErrorLog(ctx, "Server shutdown error: "+err.Error())
 		}
 	}
-	logger.InfoLog(nil, "Shutdown complete")
+	logger.InfoLog(ctx, "Shutdown complete")
 }
