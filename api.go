@@ -38,8 +38,8 @@ func main() {
 		}
 	})
 
-	handler := web.AddLogLayer(mux)
-	handler = web.AddHandlerWithActorLayer(handler)
+	handler := web.AddHandlerWithActorLayer(mux)
+	handler = web.AddLogLayer(handler)
 	handler = web.AddTraceIDLayer(handler)
 
 	srv := &http.Server{
