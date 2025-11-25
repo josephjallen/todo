@@ -13,6 +13,7 @@ import (
 	"todo/actors"
 	"todo/logger"
 	"todo/web"
+	"github.com/google/uuid"
 )
 
 /*
@@ -48,33 +49,31 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	actorManager := actors.GetActorManager()
-
-	// register local actors
-	actorManager.RegisterActor("actor1")
-
 	go func() {
-		// process messages in all actors
-		for ok := true; ok; {
-			for _, actor := range actorManager.Actors {
-					actor.ProcessMessages()
-				}
-			time.Sleep(1 * time.Second)
-		}
+		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
+		logger.InfoLog(ctx, "Starting Actors Thread")
+		actors.GetActor().ProcessMessages(ctx)
+		logger.InfoLog(ctx, "Actor thread stopped")
 	}()
 
 	// Parallel goroutine to run the server
 	go func() {
-		logger.InfoLog(nil, "Server listening on :8080")
+		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
+		logger.InfoLog(ctx, "Starting HTTP Server Thread")
+
+		logger.InfoLog(ctx, "Server listening on :8080")
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logger.ErrorLog(nil, "HTTP server Close error: "+err.Error())
+			logger.ErrorLog(ctx, "HTTP server Close error: "+err.Error())
 		}
-		logger.InfoLog(nil, "Server stopped listening on :8080")
+		logger.InfoLog(ctx, "Server stopped listening on :8080")
 	}()
 	
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
+	actors.GetActor().Messages<-actors.Message{
+			Quit: true,
+		}
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 

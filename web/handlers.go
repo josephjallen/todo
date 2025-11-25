@@ -16,7 +16,7 @@ func AddHandlerWithActorLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		channel := make(chan http.ResponseWriter)
-		actors.GetActorManager().SendMessage(actors.Message{
+		actors.GetActor().SendMessage(r.Context(), actors.Message{
 			Hand: next,
 			Resp: w,
 			Req:  r,

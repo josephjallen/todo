@@ -1,17 +1,26 @@
 package actors
 
 import (
-	"fmt"
+	"todo/logger"
+	"context"
 	"net/http"
 )
-
-var actorManager ActorManager = ActorManager{Actors: make(map[string]*Actor)}
 
 type Message struct {
 	Hand http.Handler
 	Resp http.ResponseWriter
 	Req  *http.Request
 	Chan chan (http.ResponseWriter)
+	Quit bool
+}
+
+var actor *Actor
+
+func GetActor() *Actor {
+	if actor == nil {
+		actor = &Actor{Name: "Actor1", Messages: make(chan Message, 100)}
+	}
+	return actor
 }
 
 /*********/
@@ -22,37 +31,20 @@ type Actor struct {
 	Messages chan Message
 }
 
-func (a *Actor) SendMessage(m Message) {
+func (a *Actor) SendMessage(ctx context.Context, m Message) {
+	logger.InfoLog(ctx, "Actor " + a.Name + " recieved message: " + m.Req.URL.Path)
 	a.Messages <- m
-	fmt.Printf("Actor %s recieved message: %s\n", a.Name, m.Req.URL.Path)
 }
 
-func (a *Actor) ProcessMessages() {
+func (a *Actor) ProcessMessages(ctx context.Context) {
 	for m := range a.Messages {
-		fmt.Printf("Actor %s processing message: %s\n", a.Name, m.Req.URL.Path)
+		if (m.Quit) {
+			logger.InfoLog(ctx, "Actor " + a.Name + " stopping processing")
+			break
+		}
+		logger.InfoLog(ctx, "Actor " + a.Name + " processing message: " + m.Req.URL.Path)
 		m.Hand.ServeHTTP(m.Resp, m.Req)
 		m.Chan <- m.Resp
 	}
 }
 
-/*****************/
-/* Actor Manager */
-/*****************/
-type ActorManager struct {
-	Actors map[string]*Actor
-}
-
-func GetActorManager() *ActorManager {
-	return &actorManager
-}
-
-func (s *ActorManager) RegisterActor(name string) {
-	s.Actors[name] = &Actor{Name: name, Messages: make(chan Message, 100)}
-}
-
-func (s *ActorManager) SendMessage(m Message) {
-	if actor, ok := s.Actors["actor1"]; ok {
-		actor.SendMessage(m)
-	}
-
-}
