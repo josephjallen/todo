@@ -30,7 +30,7 @@ const (
 	StatusCompleted  string = "completed"
 )
 
-func readFromMap(todoListName string) *TodoList {
+func ReadFromMap(todoListName string) *TodoList {
 	mutex.Lock()
 	defer mutex.Unlock()
 	list, ok := lists[todoListName]
@@ -48,7 +48,7 @@ func writeToMap(todoListName string, list TodoList) {
 }
 
 func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
-	list := readFromMap(todoListName)
+	list := ReadFromMap(todoListName)
 	if list == nil {
 		logger.InfoLog(ctx, "Init TodoStore for todolist: "+todoListName)
 		var err error
@@ -68,7 +68,7 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 }
 
 func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
-	list := readFromMap(todoListName)
+	list := ReadFromMap(todoListName)
 	if list != nil {
 		return list, errors.New("List already exists: " + todoListName)
 	}
