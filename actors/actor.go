@@ -34,9 +34,6 @@ func GetActor() *Actor {
 	return actor
 }
 
-/*********/
-/* Actor */
-/*********/
 type Actor struct {
 	Name     string
 	Messages chan Message

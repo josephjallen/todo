@@ -52,6 +52,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
+	// goroutine to run the actor processing
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 		logger.InfoLog(ctx, "Starting Actors Thread")
@@ -59,7 +60,7 @@ func main() {
 		logger.InfoLog(ctx, "Actor thread stopped")
 	}()
 
-	// Parallel goroutine to run the server
+	// goroutine to run the server
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 		logger.InfoLog(ctx, "Starting HTTP Server Thread")
@@ -69,16 +70,16 @@ func main() {
 			logger.ErrorLog(ctx, "HTTP server Close error: "+err.Error())
 		}
 		logger.InfoLog(ctx, "Server stopped listening on :8080")
+		actors.GetActor().Messages <- actors.Message{
+			Request: actors.Request{Operation: "quit"},
+			Ctx:     ctx,
+			Quit:    true,
+		}
 	}()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
-	actors.GetActor().Messages <- actors.Message{
-		Request: actors.Request{Operation: "quit"},
-		Ctx:     ctx,
-		Quit:    true,
-	}
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 
