@@ -1,5 +1,5 @@
 # README
-This project is a basic todo application as outlined in the file 'Golang Course.md'; the solution satisfies the requirements outlined in points 1) through to 5).
+This project is a basic todo application as outlined in the file [GolangCourse.md](GolangCourse.md); the solution satisfies the requirements outlined in points 1) through to 5).
 
 ## Basic Structure
 
