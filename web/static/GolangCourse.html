@@ -1,0 +1,60 @@
+<p>This project is to create a to-do app which allows users to create a list of to-do tasks. It is intended for you to use a range of different techniques and features of Golang and tasks followed from top to bottom, building up the application as you go. Don&#39;t be afraid to set aside your design at the end of a step if the next step would require massive refactor - it is often simpler to design an application from a clean page and copy in useful code.</p>
+<p>A to-do item should include a description and a status of &quot;not started&quot;, &quot;started&quot;, or &quot;completed&quot;. Users should be able to display a list of all to-do items including their statuses, and should be able to update a to-do item to change its status or delete it entirely. Feel free to add any additional functionality if you want.</p>
+<p>1) Basic CLI application</p>
+<ul>
+<li>Create a command line application that uses flags to accept a to-do item adds it to an empty list of to-do items and prints the list to console</li>
+<li>After printing the list of to-do items, save them to a file on disk</li>
+<li>When the application starts, load all to-do items from disk before adding new item</li>
+<li>Allow the user to update the description of a to-do item or delete it
+2) Advanced functionality</li>
+<li>Use the &quot;log/slog&quot; structured logging package to log errors and when data is saved to disk</li>
+<li>Use the &quot;context&quot; package to add a TraceID to enable traceability of calls through the solution by adding it to all logs</li>
+<li>Separate the core todo store logic into a different package/module to main/CLI code</li>
+<li>Write unit tests to cover usefully testable code
+3) API</li>
+<li>Use ServeMux in the &quot;net/http&quot; package to expose json http endpoints: &quot;/create&quot;, &quot;/get&quot;, &quot;/update&quot;, and &quot;/delete&quot;</li>
+<li>Add a middleware to create a context with TraceID</li>
+<li>Use the &quot;os/signal&quot; package and ensure that the application only exits when it receives the interrupt signal (ctrl+c)
+4) Web page</li>
+<li>Use &quot;http.FileServer&quot; to serve a static page to a new &quot;/about&quot; endpoint</li>
+<li>Use &quot;html/template&quot; to serve a dynamic page containing a list of all to-do items to a new &quot;/list&quot; endpoint
+5) Concurrency</li>
+<li>Use the Actor/Communicating Sequential Processes (CSP) pattern to support concurrent reads and concurrent safe write</li>
+<li>Use Parallel tests to validate that the solution is concurrent safe</li>
+</ul>
+<p>Further work:
+These tasks are designed to provide you with exercises beyond the end of the the academy course and are more complicated/involved, with less explanation as to how to execute them:</p>
+<ul>
+<li><p>Repl (Read-eval-print loop)
+When the application runs it should ask the user to input text into the console to create, read, update, or delete list items in a loop.</p>
+</li>
+<li><p>Multiple startups:
+Separate the cli, repl, and api functionality into separate main packages in different modules so that the application can be run as a cli OR a repl OR an api OR all of them together.</p>
+</li>
+<li><p>Multi User
+The API should include a user ID and support multiple users, each with their own to-do list.</p>
+</li>
+<li><p>No interfaces or receivers
+Remove all interfaces or receiver functions from your application and instead use the static-singleton pattern.</p>
+</li>
+<li><p>Graceful shutdown
+When the interrupt signal is sent to the application, it stops accepting incoming http requests and finishes resolving all open http requests before shutting down.</p>
+</li>
+<li><p>Publish modules
+Ensure the core todo store logic is in a self contain module and publish V1 to github, then use the published module in the application entry points rather than local one.</p>
+</li>
+<li><p>Benchmark
+Use benchmark unit tests to determine the performance of your application. Run a separate application to bombard your code with requests and evaluate the performance.</p>
+</li>
+<li><p>pprof
+Use the pprof utility to profile application performance.</p>
+</li>
+<li><p>Sharding
+Split the todo store &quot;back end&quot; module into a separate executable to the &quot;front end&quot; api/cli/repl/web server, run multiple instances of the back end and distribute traffic from the front end using ring hashing.</p>
+</li>
+<li><p>GRPC
+Enable communication between front end and back end with GRPC.</p>
+</li>
+</ul>
+<h2 id="links">Links</h2>
+<p><a href="https://gobyexample.com/">https://gobyexample.com/</a><br><a href="https://www.oreilly.com/library/view/learning-go-2nd/9781098139285/">https://www.oreilly.com/library/view/learning-go-2nd/9781098139285/</a><br><a href="https://youtu.be/YzLrWHZa-Kc?si=F-UDjZc6eARc1Uws">https://youtu.be/YzLrWHZa-Kc?si=F-UDjZc6eARc1Uws</a><br><a href="https://quii.gitbook.io/learn-go-with-tests">https://quii.gitbook.io/learn-go-with-tests</a> (although this teaches a much more OO style)</p>
