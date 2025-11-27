@@ -14,6 +14,10 @@ type TodoList struct {
 	LItems []TodoListItem `json:"lItems"`
 }
 
+type TodoListMutex struct {
+	mutex sync.Mutex
+}
+
 type TodoListItem struct {
 	Name        string
 	Description string
@@ -21,6 +25,7 @@ type TodoListItem struct {
 }
 
 var lists map[string]*TodoList = make(map[string]*TodoList)
+var lists_mutex map[string]*TodoListMutex = make(map[string]*TodoListMutex)
 
 var mutex sync.Mutex
 
@@ -30,25 +35,39 @@ const (
 	StatusCompleted  string = "completed"
 )
 
-func ReadFromMap(todoListName string) *TodoList {
+func ReadFromMap(ctx context.Context, todoListName string) (*TodoList, *TodoListMutex, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	list, ok := lists[todoListName]
+	mutex := lists_mutex[todoListName]
 	if ok {
-		return list
+		return list, mutex, nil
 	} else {
-		return nil
+		list, err := retrieveListFromFile(ctx, todoListName)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if list != nil {
+			logger.InfoLog(ctx, "Retrieved list from file: "+todoListName)
+			lists[todoListName] = list
+		} else {
+			logger.InfoLog(ctx, "Creating todo list and adding to todostore: "+todoListName)
+			lists[todoListName] = &TodoList{Name: todoListName}
+		}
+
+		lists_mutex[todoListName] = &TodoListMutex{}
+		return lists[todoListName], lists_mutex[todoListName], nil
 	}
 }
 
-func writeToMap(todoListName string, list TodoList) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	lists[todoListName] = &list
-}
-
 func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
-	list := ReadFromMap(todoListName)
+	list, mutex, err := ReadFromMap(ctx, todoListName)
+	if err != nil {
+		return nil, err
+	}
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
 	if list == nil {
 		logger.InfoLog(ctx, "Init TodoStore for todolist: "+todoListName)
 		var err error
@@ -56,42 +75,29 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 		if err != nil {
 			return nil, err
 		}
-		if list == nil {
-			logger.InfoLog(ctx, "Creating todo list: "+todoListName)
-			list = &TodoList{Name: todoListName}
-		}
-		writeToMap(todoListName, *list)
-		logger.InfoLog(ctx, "Added list to TodoStore: "+todoListName)
 	}
 
 	return list, nil
 }
 
 func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
-	list := ReadFromMap(todoListName)
-	if list != nil {
-		return list, errors.New("List already exists: " + todoListName)
-	}
-
-	list, err := retrieveListFromFile(ctx, todoListName)
+	list, mutex, err := ReadFromMap(ctx, todoListName)
 	if err != nil {
 		return nil, err
 	}
-	if list != nil {
-		return list, errors.New("List already exists: " + todoListName)
-	}
-
-	logger.InfoLog(ctx, "Creating todo list: "+todoListName)
-	list = &TodoList{Name: todoListName}
-
-	logger.InfoLog(ctx, "Adding list to TodoStore: "+todoListName)
-	writeToMap(todoListName, *list)
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
 
 	return list, nil
 }
 
 func AddItemToList(ctx context.Context, listName string, itemName string, itemDescription string) error {
-	list, err := GetList(ctx, listName)
+	list, mutex, err := ReadFromMap(ctx, listName)
+	if err != nil {
+		return err
+	}
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err
 	}
@@ -115,10 +121,13 @@ func AddItemToList(ctx context.Context, listName string, itemName string, itemDe
 }
 
 func UpdateListItemDescription(ctx context.Context, listName string, itemName string, itemDescription string) error {
-	list, err := GetList(ctx, listName)
+	list, mutex, err := ReadFromMap(ctx, listName)
 	if err != nil {
 		return err
 	}
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
+
 	var itemFound bool = false
 	var updateItemIndex int
 	for index, lItem := range list.LItems {
@@ -139,10 +148,13 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 }
 
 func UpdateListItemStatus(ctx context.Context, listName string, itemName string, itemStatus string) error {
-	list, err := GetList(ctx, listName)
+	list, mutex, err := ReadFromMap(ctx, listName)
 	if err != nil {
 		return err
 	}
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
+
 	if itemStatus != StatusNotStarted && itemStatus != StatusStarted && itemStatus != StatusCompleted {
 		err := errors.New("Invalid status provided: " + itemStatus)
 		return err
@@ -168,10 +180,13 @@ func UpdateListItemStatus(ctx context.Context, listName string, itemName string,
 }
 
 func DeleteItemFromList(ctx context.Context, listName string, itemName string) error {
-	list, err := GetList(ctx, listName)
+	list, mutex, err := ReadFromMap(ctx, listName)
 	if err != nil {
 		return err
 	}
+	mutex.mutex.Lock()
+	defer mutex.mutex.Unlock()
+
 	var itemFound bool = false
 	var deleteItemIndex int
 	for index, lItem := range list.LItems {

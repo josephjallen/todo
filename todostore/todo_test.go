@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func initTodoStore() {
-	todostore.List = &todostore.TodoList{Name: "testtodolist"}
-}
-
 /*
 go test todo_test.go todo.go
 */
@@ -20,89 +16,96 @@ func TestTodoList(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 
-	t.Run("Check name", func(t *testing.T) {
-		initTodoStore()
-		if todostore.List.Name != "testtodolist" {
-			t.Errorf("Expected list name to be 'testtodolist', got '%s'", todostore.List.Name)
-		}
-	})
-
 	t.Run("Add new todo", func(t *testing.T) {
-		initTodoStore()
-		err := todostore.AddItemToList(ctx, "testtodolist", "Todo 1 Description")
+		err := todostore.AddItemToList(ctx, "testtodolist", "Shopping", "Bread")
 		if err != nil {
 			t.Errorf("Error adding new todo: %s", err.Error())
 		}
 
-		if len(todostore.List.LItems) != 1 {
-			t.Errorf("Expected 1 todo item, got %d", len(todostore.List.LItems))
+		list, err := todostore.GetList(ctx, "testtodolist")
+		if err != nil {
+			t.Errorf("Error getting todo: %s", err.Error())
 		}
+
+		if len(list.LItems) != 1 {
+			t.Errorf("Expected 1 todo item, got %d", len(list.LItems))
+		}
+
+		if list.LItems[0].Name != "Shopping" {
+			t.Errorf("Expected item name, got %s", list.LItems[0].Name)
+		}
+
+		_ = todostore.DeleteItemFromList(ctx, "testtodolist", "Shopping")
 	})
 
 	t.Run("Delete todo", func(t *testing.T) {
-		initTodoStore()
-		err := todostore.AddItemToList(ctx, "testtodolist", "Todo 1 Description")
+		err := todostore.AddItemToList(ctx, "testtodolist", "Shopping", "Bread")
 		if err != nil {
 			t.Errorf("Error adding new todo: %s", err.Error())
 		}
 
-		if len(todostore.List.LItems) != 1 {
-			t.Errorf("Expected 1 todo item, got %d", len(todostore.List.LItems))
-		}
-
-		err = todostore.DeleteItemFromList(ctx, "testtodolist")
+		err = todostore.DeleteItemFromList(ctx, "testtodolist", "Shopping")
 		if err != nil {
 			t.Errorf("Error removing todo: %s", err.Error())
 		}
 
-		if len(todostore.List.LItems) != 0 {
-			t.Errorf("Expected 0 todo item, got %d", len(todostore.List.LItems))
+		list, err := todostore.GetList(ctx, "testtodolist")
+		if err != nil {
+			t.Errorf("Error getting todo: %s", err.Error())
+		}
+
+		if len(list.LItems) != 0 {
+			t.Errorf("Expected 0 todo item, got %d", len(list.LItems))
 		}
 	})
 
 	t.Run("Update todo description", func(t *testing.T) {
-		initTodoStore()
-		err := todostore.AddItemToList(ctx, "testtodolist", "Todo 1 Description")
+		err := todostore.AddItemToList(ctx, "testtodolist", "Shopping", "Bread")
 		if err != nil {
 			t.Errorf("Error adding new todo: %s", err.Error())
 		}
 
-		if len(todostore.List.LItems) != 1 {
-			t.Errorf("Expected 1 todo item, got %d", len(todostore.List.LItems))
-		}
-
-		err = todostore.UpdateListItemDescription(ctx, "testtodolist", "Todo 1 Description Updated")
+		err = todostore.UpdateListItemDescription(ctx, "testtodolist", "Shopping", "Todo Description Updated")
 		if err != nil {
 			t.Errorf("Error updating todo description: %s", err.Error())
 		}
 
-		if todostore.List.LItems[0].Description != "Todo 1 Description Updated" {
-			t.Errorf("Expected todo item description to be 'Todo 1 Description Updated', got %s", todostore.List.LItems[0].Description)
+		list, err := todostore.GetList(ctx, "testtodolist")
+		if err != nil {
+			t.Errorf("Error getting todo: %s", err.Error())
 		}
+
+		if list.LItems[0].Description != "Todo Description Updated" {
+			t.Errorf("Expected todo item description to be 'Todo Description Updated', got %s", list.LItems[0].Description)
+		}
+
+		_ = todostore.DeleteItemFromList(ctx, "testtodolist", "Shopping")
 	})
 
 	t.Run("Update todo status", func(t *testing.T) {
-		initTodoStore()
-		err := todostore.AddItemToList(ctx, "testtodolist", "Todo 1 Description")
+		err := todostore.AddItemToList(ctx, "testtodolist", "Shopping", "Bread")
 		if err != nil {
 			t.Errorf("Error adding new todo: %s", err.Error())
 		}
 
-		if len(todostore.List.LItems) != 1 {
-			t.Errorf("Expected 1 todo item, got %d", len(todostore.List.LItems))
+		list, err := todostore.GetList(ctx, "testtodolist")
+		if err != nil {
+			t.Errorf("Error getting todo: %s", err.Error())
 		}
 
-		if todostore.List.LItems[0].Status != todostore.StatusNotStarted {
-			t.Errorf("Expected todostore.StatusNotStarted, got %s", todostore.List.LItems[0].Status)
+		if list.LItems[0].Status != todostore.StatusNotStarted {
+			t.Errorf("Expected todostore.StatusNotStarted, got %s", list.LItems[0].Status)
 		}
 
-		err = todostore.UpdateListItemStatus(ctx, "testtodolist", todostore.StatusStarted)
+		err = todostore.UpdateListItemStatus(ctx, "testtodolist", "Shopping", todostore.StatusStarted)
 		if err != nil {
 			t.Errorf("Error updating todo status: %s", err.Error())
 		}
 
-		if todostore.List.LItems[0].Status != todostore.StatusStarted {
-			t.Errorf("Expected todostore.StatusStarted, got %s", todostore.List.LItems[0].Status)
+		if list.LItems[0].Status != todostore.StatusStarted {
+			t.Errorf("Expected todostore.StatusStarted, got %s", list.LItems[0].Status)
 		}
+
+		_ = todostore.DeleteItemFromList(ctx, "testtodolist", "Shopping")
 	})
 }
