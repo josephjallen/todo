@@ -20,7 +20,7 @@ import (
 /*
 go run api.go
 http://127.0.0.1:8080/about
-http://127.0.0.1:8080/list/weeklytodo
+http://127.0.0.1:8080/list/<TodoName>
 */
 func main() {
 	ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())

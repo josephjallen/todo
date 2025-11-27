@@ -10,7 +10,7 @@ import (
 )
 
 /*
-go test todo_test.go todo.go
+go test todo_test.go
 */
 func TestTodoList(t *testing.T) {
 

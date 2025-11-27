@@ -1,3 +1,77 @@
-<HTML>
-    <H1>TODOLIST - ABOUT PAGE</H1>
-</HTML>
+<h1>README</h1>
+<p>
+This project is a basic todo application as outlined in the file &#39;Golang Course.md&#39;; the solution satisfies the requirements outlined in points 1) through to 5).</p>
+<h2 id="basic-structure">Basic Structure</h2>
+<h3 id="packages">Packages</h3>
+<ul>
+<li><strong>todostore</strong> - contains the main logic for the todo lists </li>
+<li><strong>web</strong> - contains the api handlers and the web pages </li>
+<li><strong>actors</strong> - contains the actor pattern implementation for concurrent access to the todostore</li>
+<li><strong>filestorage</strong> - contains r/w disk access and backup logic </li>
+<li><strong>backups</strong> - backup location for updated todo lists </li>
+<li><strong>logger</strong> - shared logging</li>
+</ul>
+<h3 id="main-files">Main files</h3>
+<ul>
+<li><strong>api.go</strong> - starts the http server to accept api requests - to run: <code>go run api.go</code></li>
+<li><strong>cli.go</strong> - accepts cli commands to access the todostore, backups in the folder /backups will be made for each change to an existing todo - to run:<ul>
+<li><code>go run cli.go -todoList=todod1 -additemname=monday -additemdescription=gotoshop</code></li>
+<li><code>go run cli.go -todoList=todod1 -updateitemname=monday -updateitemdescription=gotoshop_updated</code></li>
+<li><code>go run cli.go -todoList=todod1 -updateitemname=monday -updateitemstatus=started</code></li>
+<li><code>go run cli.go -todoList=todod1 -deleteitemname=monday</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="test-files">Test files</h3>
+<ul>
+<li><strong>api_test.go</strong> - to run: <code>go test api_test.go -parallel=2</code></li>
+<li><strong>actors/actor_test.go</strong> - to run: <code>go test actor_test.go -parallel=2</code></li>
+<li><strong>todostore/todo_test.go</strong> - to run: <code>go test todo_test.go</code></li>
+</ul>
+<h2 id="web-pages">Web Pages</h2>
+<p>First start HTTP Server with: <code>go run api.go</code>.</p>
+<ul>
+<li><a href="http://127.0.0.1:8080/about">http://127.0.0.1:8080/about</a></li>
+<li><a href="http://127.0.0.1:8080/list/TODONAME">http://127.0.0.1:8080/list/TODONAME</a> e.g. <a href="http://127.0.0.1:8080/list/weeklytodo">http://127.0.0.1:8080/list/weeklytodo</a></li>
+</ul>
+<h2 id="api-requests">API Requests</h2>
+<p>First start HTTP Server with: <code>go run api.go</code>.</p>
+<p>N.B. You can pass in your own traceid (see Get List Curl example below for the header) if required, if you don&#39;t pass in a traceid one will be allocated</p>
+<h3 id="create-list">Create List</h3>
+<p><code>curl --location --request GET &#39;127.0.0.1:8080/createlist&#39; \
+--header &#39;Content-Type: application/json&#39; \
+--data &#39;{
+    &quot;TodoListName&quot;: &quot;Shopping&quot;
+}&#39;</code></p>
+<h3 id="get-list">Get List</h3>
+<p><code>curl --location --request GET &#39;127.0.0.1:8080/getlist&#39; \
+--header &#39;X-Trace-ID: 123&#39; \
+--header &#39;Content-Type: application/json&#39; \
+--data &#39;{
+    &quot;TodoListName&quot;: &quot;Shopping&quot;
+}&#39;</code></p>
+<h3 id="add-item">Add Item</h3>
+<p><code>curl --location --request GET &#39;127.0.0.1:8080/additem&#39; \
+--header &#39;Content-Type: application/json&#39; \
+--data &#39;{
+    &quot;TodoListName&quot;: &quot;Shopping&quot;,
+    &quot;ItemName&quot;: &quot;Item1&quot;,
+    &quot;ItemDescription&quot;: &quot;Buy Bread&quot;
+}&#39;</code></p>
+<h3 id="update-item-description">Update Item Description</h3>
+<p><code>curl --location --request GET &#39;127.0.0.1:8080/updateitemdescription&#39; \
+--header &#39;Content-Type: application/json&#39; \
+--data &#39;{
+    &quot;TodoListName&quot;: &quot;Shopping&quot;,
+    &quot;ItemName&quot;: &quot;Item1&quot;,
+    &quot;ItemDescription&quot;: &quot;Buy White Bread&quot;
+}&#39;</code></p>
+<h3 id="update-item-status">Update Item Status</h3>
+<p><code>curl --location --request GET &#39;127.0.0.1:8080/updateitemstatus&#39; \
+--header &#39;Content-Type: application/json&#39; \
+--data &#39;{
+    &quot;TodoListName&quot;: &quot;Shopping&quot;,
+    &quot;ItemName&quot;: &quot;Item1&quot;,
+    &quot;ItemStatus&quot;: &quot;started&quot;
+}&#39;</code>
+kdown.</p>

@@ -41,7 +41,6 @@ func ReadFromMap(ctx context.Context, todoListName string) (*TodoList, *TodoList
 	list, ok := lists[todoListName]
 	mutex := lists_mutex[todoListName]
 	if ok {
-		mutex.mutex.Lock()
 		return list, mutex, nil
 	} else {
 		list, err := retrieveListFromFile(ctx, todoListName)
@@ -58,13 +57,13 @@ func ReadFromMap(ctx context.Context, todoListName string) (*TodoList, *TodoList
 		}
 
 		lists_mutex[todoListName] = &TodoListMutex{}
-		lists_mutex[todoListName].mutex.Lock()
 		return lists[todoListName], lists_mutex[todoListName], nil
 	}
 }
 
 func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 	list, mutex, err := ReadFromMap(ctx, todoListName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return nil, err
@@ -83,6 +82,7 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 
 func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
 	list, mutex, err := ReadFromMap(ctx, todoListName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return nil, err
@@ -93,6 +93,7 @@ func CreateList(ctx context.Context, todoListName string) (*TodoList, error) {
 
 func AddItemToList(ctx context.Context, listName string, itemName string, itemDescription string) error {
 	list, mutex, err := ReadFromMap(ctx, listName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err
@@ -118,6 +119,7 @@ func AddItemToList(ctx context.Context, listName string, itemName string, itemDe
 
 func UpdateListItemDescription(ctx context.Context, listName string, itemName string, itemDescription string) error {
 	list, mutex, err := ReadFromMap(ctx, listName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err
@@ -144,6 +146,7 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 
 func UpdateListItemStatus(ctx context.Context, listName string, itemName string, itemStatus string) error {
 	list, mutex, err := ReadFromMap(ctx, listName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err
@@ -175,6 +178,7 @@ func UpdateListItemStatus(ctx context.Context, listName string, itemName string,
 
 func DeleteItemFromList(ctx context.Context, listName string, itemName string) error {
 	list, mutex, err := ReadFromMap(ctx, listName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err
@@ -199,8 +203,6 @@ func DeleteItemFromList(ctx context.Context, listName string, itemName string) e
 	return nil
 }
 
-/*
- */
 func retrieveListFromFile(ctx context.Context, listName string) (*TodoList, error) {
 	list_b, err := filestorage.LoadFileToByteSlice(ctx, listName+".json")
 	if err != nil || list_b == nil {
@@ -223,6 +225,7 @@ func retrieveListFromFile(ctx context.Context, listName string) (*TodoList, erro
 
 func SaveList(ctx context.Context, listName string) error {
 	list, mutex, err := ReadFromMap(ctx, listName)
+	mutex.mutex.Lock()
 	defer mutex.mutex.Unlock()
 	if err != nil {
 		return err

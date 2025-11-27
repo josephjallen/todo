@@ -10,7 +10,6 @@ import (
 )
 
 func SaveByteSliceToFile(val []byte, fileName string) error {
-
 	err := backupFile(fileName)
 	if err != nil {
 		return err
