@@ -26,9 +26,10 @@ func initActorThread() {
 }
 
 /*
-go test api_test.go
+go test api_test.go -parallel=2
 */
 func TestTodoList(t *testing.T) {
+	t.Parallel()
 
 	ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 	initActorThread()

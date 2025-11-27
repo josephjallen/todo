@@ -69,7 +69,7 @@ func backupFile(fileName string) error {
 		defer sourceFile.Close()
 
 		// Create the destination file
-		destinationFile, err := os.Create("./Backups/" + fileName + "_" + time.Now().String())
+		destinationFile, err := os.Create("./backups/" + fileName + "_" + time.Now().String())
 		if err != nil {
 			return fmt.Errorf("failed to create destination file: %w", err)
 		}
