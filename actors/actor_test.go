@@ -24,11 +24,11 @@ go test actor_test.go -parallel=2
 */
 func TestActors(t *testing.T) {
 
-	t.Parallel()
 	initActorThread()
 	ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 
 	t.Run("Create List", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 		request := actors.Request{
 			Operation:    "CreateList",
@@ -68,7 +68,7 @@ func TestActors(t *testing.T) {
 	})
 
 	t.Run("Add To List", func(t *testing.T) {
-
+		t.Parallel()
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
 		request := actors.Request{
 			Operation:       "AddItem",
