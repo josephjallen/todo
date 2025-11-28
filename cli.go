@@ -49,6 +49,6 @@ func main() {
 	}
 
 	if err != nil {
-		logger.ErrorLog(ctx, err.Error())
+		logger.GetCtxLogger(ctx).Error(err.Error())
 	}
 }

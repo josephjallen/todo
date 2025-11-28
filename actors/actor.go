@@ -40,13 +40,13 @@ type Actor struct {
 }
 
 func (a *Actor) SendMessage(ctx context.Context, m Message) {
-	logger.InfoLog(ctx, "Actor "+a.Name+" recieved message from trace id: "+m.Ctx.Value(logger.TraceIdKey{}).(string))
+	logger.GetCtxLogger(ctx).Info("Actor " + a.Name + " recieved message from trace id: " + m.Ctx.Value(logger.TraceIdKey{}).(string))
 	a.Messages <- m
 }
 
 func (a *Actor) ProcessMessages(ctx context.Context) {
 	for m := range a.Messages {
-		logger.InfoLog(ctx, "Actor "+a.Name+" processing message from trace id: "+m.Ctx.Value(logger.TraceIdKey{}).(string)+" operation type: "+m.Request.Operation)
+		logger.GetCtxLogger(ctx).Info("Actor " + a.Name + " processing message from trace id: " + m.Ctx.Value(logger.TraceIdKey{}).(string) + " operation type: " + m.Request.Operation)
 
 		switch {
 		case m.Request.Operation == "CreateList":
@@ -68,7 +68,7 @@ func (a *Actor) ProcessMessages(ctx context.Context) {
 			err := todostore.UpdateListItemStatus(m.Ctx, m.Request.TodoListName, m.Request.ItemName, m.Request.ItemStatus)
 			m.ResponseChan <- Response{Err: err}
 		case m.Quit:
-			logger.InfoLog(ctx, "Actor "+a.Name+" stopping processing")
+			logger.GetCtxLogger(ctx).Info("Actor " + a.Name + " stopping processing")
 			return
 		}
 	}

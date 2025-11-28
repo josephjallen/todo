@@ -29,7 +29,7 @@ func SaveByteSliceToFile(val []byte, fileName string) error {
 func LoadFileToByteSlice(ctx context.Context, fileName string) ([]byte, error) {
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
-		logger.InfoLog(ctx, "File does not exist: "+fileName)
+		logger.GetCtxLogger(ctx).Info("File does not exist: " + fileName)
 		return nil, nil
 	}
 

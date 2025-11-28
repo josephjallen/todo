@@ -19,9 +19,9 @@ import (
 func initActorThread() {
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
-		logger.InfoLog(ctx, "Starting Actors Thread")
+		logger.GetCtxLogger(ctx).Info("Starting Actors Thread")
 		actors.GetActor().ProcessMessages(ctx)
-		logger.InfoLog(ctx, "Actor thread stopped")
+		logger.GetCtxLogger(ctx).Info("Actor thread stopped")
 	}()
 }
 
@@ -35,7 +35,7 @@ func TestTodoList(t *testing.T) {
 	initActorThread()
 
 	t.Run("Create List", func(t *testing.T) {
-		logger.InfoLog(nil, "Sending message...")
+		logger.GetCtxLogger(nil).Info("Sending message...")
 
 		mcPostBody := map[string]interface{}{
 			"TodoListName": "Shopping",
@@ -70,7 +70,7 @@ func TestTodoList(t *testing.T) {
 	})
 
 	t.Run("Add To List", func(t *testing.T) {
-		logger.InfoLog(nil, "Sending message...")
+		logger.GetCtxLogger(nil).Info("Sending message...")
 
 		mcPostBody := map[string]interface{}{
 			"TodoListName": "Shopping",

@@ -13,9 +13,9 @@ import (
 func initActorThread() {
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
-		logger.InfoLog(ctx, "Starting Actors Thread")
+		logger.GetCtxLogger(ctx).Info("Starting Actors Thread")
 		actors.GetActor().ProcessMessages(ctx)
-		logger.InfoLog(ctx, "Actor thread stopped")
+		logger.GetCtxLogger(ctx).Info("Actor thread stopped")
 	}()
 }
 

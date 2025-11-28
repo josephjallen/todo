@@ -7,26 +7,10 @@ import (
 
 type TraceIdKey struct{}
 
-func InfoLog(ctx context.Context, message string) {
-	if ctx != nil {
-		slog.Info(ctx.Value(TraceIdKey{}).(string) + " " + message)
-	} else {
-		slog.Info(message)
+func GetCtxLogger(ctx context.Context) *slog.Logger {
+	traceID := ctx.Value(TraceIdKey{})
+	if traceID == nil {
+		return slog.Default()
 	}
-}
-
-func WarningLog(ctx context.Context, message string) {
-	if ctx != nil {
-		slog.Warn(ctx.Value(TraceIdKey{}).(string) + " " + message)
-	} else {
-		slog.Warn(message)
-	}
-}
-
-func ErrorLog(ctx context.Context, message string) {
-	if ctx != nil {
-		slog.Error(ctx.Value(TraceIdKey{}).(string) + " " + message)
-	} else {
-		slog.Error(message)
-	}
+	return slog.With("trace_id", traceID.(string))
 }

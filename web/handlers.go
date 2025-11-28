@@ -32,7 +32,7 @@ func AddTraceIDLayer(next http.Handler) http.Handler {
 
 func AddLogLayer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.InfoLog(r.Context(), "Request Recieved: "+r.Method+" "+r.URL.Path)
+		logger.GetCtxLogger(r.Context()).Info("Request Recieved: " + r.Method + " " + r.URL.Path)
 
 		next.ServeHTTP(w, r)
 	})
@@ -43,12 +43,12 @@ func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interfa
 	w.WriteHeader(status)
 	b, _ := json.Marshal(v)
 	if status >= 200 && status < 300 {
-		logger.InfoLog(ctx, "Response: "+string(b))
+		logger.GetCtxLogger(ctx).Info("Response: " + string(b))
 	} else if status >= 400 {
 		if err != nil {
-			logger.ErrorLog(ctx, "Response: "+string(b)+" Error: "+err.Error())
+			logger.GetCtxLogger(ctx).Error("Response: " + string(b) + " Error: " + err.Error())
 		} else {
-			logger.ErrorLog(ctx, "Response: "+string(b))
+			logger.GetCtxLogger(ctx).Error("Response: " + string(b))
 		}
 	}
 	_ = json.NewEncoder(w).Encode(v)

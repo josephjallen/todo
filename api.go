@@ -55,21 +55,21 @@ func main() {
 	// goroutine to run the actor processing
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
-		logger.InfoLog(ctx, "Starting Actors Thread")
+		logger.GetCtxLogger(ctx).Info("Starting Actors Thread")
 		actors.GetActor().ProcessMessages(ctx)
-		logger.InfoLog(ctx, "Actor thread stopped")
+		logger.GetCtxLogger(ctx).Info("Actor thread stopped")
 	}()
 
 	// goroutine to run the server
 	go func() {
 		ctx := context.WithValue(context.Background(), logger.TraceIdKey{}, uuid.NewString())
-		logger.InfoLog(ctx, "Starting HTTP Server Thread")
+		logger.GetCtxLogger(ctx).Info("Starting HTTP Server Thread")
 
-		logger.InfoLog(ctx, "Server listening on :8080")
+		logger.GetCtxLogger(ctx).Info("Server listening on :8080")
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logger.ErrorLog(ctx, "HTTP server Close error: "+err.Error())
+			logger.GetCtxLogger(ctx).Error("HTTP server Close error: " + err.Error())
 		}
-		logger.InfoLog(ctx, "Server stopped listening on :8080")
+		logger.GetCtxLogger(ctx).Info("Server stopped listening on :8080")
 		actors.GetActor().Messages <- actors.Message{
 			Request: actors.Request{Operation: "quit"},
 			Ctx:     ctx,
@@ -84,11 +84,11 @@ func main() {
 	defer shutdownRelease()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.ErrorLog(ctx, "HTTP shutdown error: "+err.Error())
+		logger.GetCtxLogger(ctx).Error("HTTP shutdown error: " + err.Error())
 		err = srv.Close()
 		if err != nil {
-			logger.ErrorLog(ctx, "Server shutdown error: "+err.Error())
+			logger.GetCtxLogger(ctx).Error("Server shutdown error: " + err.Error())
 		}
 	}
-	logger.InfoLog(ctx, "Shutdown complete")
+	logger.GetCtxLogger(ctx).Info("Shutdown complete")
 }

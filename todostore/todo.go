@@ -49,10 +49,10 @@ func ReadFromMap(ctx context.Context, todoListName string) (*TodoList, *TodoList
 		}
 
 		if list != nil {
-			logger.InfoLog(ctx, "Retrieved list from file: "+todoListName)
+			logger.GetCtxLogger(ctx).Info("Retrieved list from file: " + todoListName)
 			lists[todoListName] = list
 		} else {
-			logger.InfoLog(ctx, "Creating todo list and adding to todostore: "+todoListName)
+			logger.GetCtxLogger(ctx).Info("Creating todo list and adding to todostore: " + todoListName)
 			lists[todoListName] = &TodoList{Name: todoListName}
 		}
 
@@ -69,7 +69,7 @@ func GetList(ctx context.Context, todoListName string) (*TodoList, error) {
 		return nil, err
 	}
 	if list == nil {
-		logger.InfoLog(ctx, "Init TodoStore for todolist: "+todoListName)
+		logger.GetCtxLogger(ctx).Info("Init TodoStore for todolist: " + todoListName)
 		var err error
 		list, err = retrieveListFromFile(ctx, todoListName)
 		if err != nil {
@@ -112,7 +112,7 @@ func AddItemToList(ctx context.Context, listName string, itemName string, itemDe
 
 	lItem := TodoListItem{Name: itemName, Description: itemDescription, Status: StatusNotStarted}
 	list.LItems = append(list.LItems, lItem)
-	logger.InfoLog(ctx, "Added item: "+lItem.Name+" to List: "+list.Name)
+	logger.GetCtxLogger(ctx).Info("Added item: " + lItem.Name + " to List: " + list.Name)
 
 	return nil
 }
@@ -136,7 +136,7 @@ func UpdateListItemDescription(ctx context.Context, listName string, itemName st
 	}
 	if itemFound {
 		list.LItems[updateItemIndex].Description = itemDescription
-		logger.InfoLog(ctx, "Item Updated (Description): "+itemName+" in List: "+list.Name)
+		logger.GetCtxLogger(ctx).Info("Item Updated (Description): " + itemName + " in List: " + list.Name)
 	} else {
 		return errors.New("Cannot find Item to update: " + itemName)
 	}
@@ -168,7 +168,7 @@ func UpdateListItemStatus(ctx context.Context, listName string, itemName string,
 	}
 	if itemFound {
 		list.LItems[updateItemIndex].Status = itemStatus
-		logger.InfoLog(ctx, "Item Updated (Status): "+itemName+" in List: "+list.Name)
+		logger.GetCtxLogger(ctx).Info("Item Updated (Status): " + itemName + " in List: " + list.Name)
 	} else {
 		return errors.New("Cannot find Item to update: " + itemName)
 	}
@@ -195,9 +195,9 @@ func DeleteItemFromList(ctx context.Context, listName string, itemName string) e
 	}
 	if itemFound {
 		list.LItems = append(list.LItems[:deleteItemIndex], list.LItems[deleteItemIndex+1:]...)
-		logger.InfoLog(ctx, "Item Deleted: "+itemName+" from List: "+list.Name)
+		logger.GetCtxLogger(ctx).Info("Item Deleted: " + itemName + " from List: " + list.Name)
 	} else {
-		logger.InfoLog(ctx, "Cannot find Item to delete: "+itemName)
+		logger.GetCtxLogger(ctx).Info("Cannot find Item to delete: " + itemName)
 	}
 
 	return nil
@@ -212,8 +212,8 @@ func retrieveListFromFile(ctx context.Context, listName string) (*TodoList, erro
 	var list TodoList
 
 	if list_b != nil {
-		logger.InfoLog(ctx, "Getting todo list: "+listName)
-		logger.InfoLog(ctx, string(list_b))
+		logger.GetCtxLogger(ctx).Info("Getting todo list: " + listName)
+		logger.GetCtxLogger(ctx).Info(string(list_b))
 		err := json.Unmarshal(list_b, &list)
 		if err != nil {
 			return nil, err
@@ -237,7 +237,7 @@ func SaveList(ctx context.Context, listName string) error {
 
 	filestorage.SaveByteSliceToFile(list_bb, listName+".json")
 
-	logger.InfoLog(ctx, string(list_bb))
+	logger.GetCtxLogger(ctx).Info(string(list_bb))
 
 	return nil
 }
