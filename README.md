@@ -38,43 +38,32 @@ First start HTTP Server with: `go run api.go`.
 N.B. You can pass in your own traceid (see Get List Curl example below for the header) if required, if you don't pass in a traceid one will be allocated
 
 ### Create List
-`curl --location --request GET '127.0.0.1:8080/createlist' \
---header 'Content-Type: application/json' \
---data '{
-    "TodoListName": "Shopping"
-}'`
+curl --location --request GET '127.0.0.1:8080/createlist' --header 'Content-Type: application/json' --data '{ "TodoListName": "Shopping" }'
 
 ### Get List
-`curl --location --request GET '127.0.0.1:8080/getlist' \
---header 'X-Trace-ID: 123' \
---header 'Content-Type: application/json' \
---data '{
-    "TodoListName": "Shopping"
-}'`
+curl --location --request GET '127.0.0.1:8080/getlist' --header 'X-Trace-ID: 123' --header 'Content-Type: application/json' --data '{ "TodoListName": "Shopping" }'
 
 ### Add Item
-`curl --location --request GET '127.0.0.1:8080/additem' \
---header 'Content-Type: application/json' \
---data '{
+curl --location --request GET '127.0.0.1:8080/additem' --header 'Content-Type: application/json' --data '{
     "TodoListName": "Shopping",
     "ItemName": "Item1",
 	"ItemDescription": "Buy Bread"
-}'`
+}'
 
 ### Update Item Description
-`curl --location --request GET '127.0.0.1:8080/updateitemdescription' \
---header 'Content-Type: application/json' \
+curl --location --request GET '127.0.0.1:8080/updateitemdescription'
+--header 'Content-Type: application/json'
 --data '{
     "TodoListName": "Shopping",
     "ItemName": "Item1",
 	"ItemDescription": "Buy White Bread"
-}'`
+}'
 
 ### Update Item Status
-`curl --location --request GET '127.0.0.1:8080/updateitemstatus' \
---header 'Content-Type: application/json' \
+curl --location --request GET '127.0.0.1:8080/updateitemstatus'
+--header 'Content-Type: application/json'
 --data '{
     "TodoListName": "Shopping",
     "ItemName": "Item1",
 	"ItemStatus": "started"
-}'`
+}'
