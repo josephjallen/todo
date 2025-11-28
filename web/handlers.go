@@ -45,7 +45,11 @@ func writeJSON(ctx context.Context, status int, w http.ResponseWriter, v interfa
 	if status >= 200 && status < 300 {
 		logger.InfoLog(ctx, "Response: "+string(b))
 	} else if status >= 400 {
-		logger.ErrorLog(ctx, "Response: "+string(b)+" Error: "+err.Error())
+		if err != nil {
+			logger.ErrorLog(ctx, "Response: "+string(b)+" Error: "+err.Error())
+		} else {
+			logger.ErrorLog(ctx, "Response: "+string(b))
+		}
 	}
 	_ = json.NewEncoder(w).Encode(v)
 }
@@ -64,6 +68,10 @@ func callActor(r *http.Request, request actors.Request) chan (actors.Response) {
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodPost}, nil)
+		return
+	}
 	var cr CreateListRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)
@@ -82,6 +90,10 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetListHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodGet {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodGet}, nil)
+		return
+	}
 	var gr GetListRequest
 	if err := json.NewDecoder(r.Body).Decode(&gr); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)
@@ -100,6 +112,10 @@ func GetListHandler(w http.ResponseWriter, r *http.Request) {
 
 func AddItemHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodPost}, nil)
+		return
+	}
 	var ar AddItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&ar); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)
@@ -118,6 +134,10 @@ func AddItemHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodPost}, nil)
+		return
+	}
 	var dr DeleteItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&dr); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)
@@ -136,6 +156,10 @@ func DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPatch {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodPatch}, nil)
+		return
+	}
 	var ur UpdateItemDescriptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&ur); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)
@@ -154,6 +178,10 @@ func UpdateItemDescriptionHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateItemStatusHandler(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPatch {
+		writeJSON(r.Context(), http.StatusMethodNotAllowed, w, Response{Message: "Method Not Allowed: " + r.Method + ", expecting: " + http.MethodPatch}, nil)
+		return
+	}
 	var ur UpdateItemStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&ur); err != nil {
 		writeJSON(r.Context(), http.StatusBadRequest, w, Response{Message: "Invalid JSON"}, err)

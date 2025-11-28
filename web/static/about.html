@@ -38,7 +38,7 @@ This project is a basic todo application as outlined in the file <a href="./Gola
 <p>First start HTTP Server with: <code>go run api.go</code>.</p>
 <p>N.B. You can pass in your own traceid (see Get List Curl example below for the header) if required, if you don&#39;t pass in a traceid one will be allocated</p>
 <h3 id="create-list">Create List</h3>
-<p><code>curl --location --request GET &#39;127.0.0.1:8080/createlist&#39;
+<p><code>curl --location --request POST &#39;127.0.0.1:8080/createlist&#39;
 --header &#39;Content-Type: application/json&#39;
 --data &#39;{
     &quot;TodoListName&quot;: &quot;Shopping&quot;
@@ -51,7 +51,7 @@ This project is a basic todo application as outlined in the file <a href="./Gola
     &quot;TodoListName&quot;: &quot;Shopping&quot;
 }&#39;</code></p>
 <h3 id="add-item">Add Item</h3>
-<p><code>curl --location --request GET &#39;127.0.0.1:8080/additem&#39;
+<p><code>curl --location --request POST &#39;127.0.0.1:8080/additem&#39;
 --header &#39;Content-Type: application/json&#39;
 --data &#39;{
     &quot;TodoListName&quot;: &quot;Shopping&quot;,
@@ -59,7 +59,7 @@ This project is a basic todo application as outlined in the file <a href="./Gola
     &quot;ItemDescription&quot;: &quot;Buy Bread&quot;
 }&#39;</code></p>
 <h3 id="update-item-description">Update Item Description</h3>
-<p><code>curl --location --request GET &#39;127.0.0.1:8080/updateitemdescription&#39;
+<p><code>curl --location --request PATCH &#39;127.0.0.1:8080/updateitemdescription&#39;
 --header &#39;Content-Type: application/json&#39;
 --data &#39;{
     &quot;TodoListName&quot;: &quot;Shopping&quot;,
@@ -67,7 +67,7 @@ This project is a basic todo application as outlined in the file <a href="./Gola
     &quot;ItemDescription&quot;: &quot;Buy White Bread&quot;
 }&#39;</code></p>
 <h3 id="update-item-status">Update Item Status</h3>
-<p><code>curl --location --request GET &#39;127.0.0.1:8080/updateitemstatus&#39;
+<p><code>curl --location --request PATCH &#39;127.0.0.1:8080/updateitemstatus&#39;
 --header &#39;Content-Type: application/json&#39;
 --data &#39;{
     &quot;TodoListName&quot;: &quot;Shopping&quot;,
