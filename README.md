@@ -4,7 +4,7 @@ This project is a basic todo application as outlined in the file [GolangCourse.m
 ## Basic Structure
 
 ### Packages
-- **todostore** - contains the main logic for the todo lists 
+- **todostore** - contains the main logic for the todo lists (this is not threadsafe, as the list can be updated by two methods simultaneously)
 - **web** - contains the api handlers and the web pages 
 - **actors** - contains the actor pattern implementation for concurrent access to the todostore
 - **filestorage** - contains r/w disk access and backup logic 

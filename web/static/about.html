@@ -4,7 +4,7 @@ This project is a basic todo application as outlined in the file <a href="./Gola
 <h2 id="basic-structure">Basic Structure</h2>
 <h3 id="packages">Packages</h3>
 <ul>
-<li><strong>todostore</strong> - contains the main logic for the todo lists </li>
+<li><strong>todostore</strong> - contains the main logic for the todo lists (this is not threadsafe, as the list can be updated by two methods simultaneously)</li>
 <li><strong>web</strong> - contains the api handlers and the web pages </li>
 <li><strong>actors</strong> - contains the actor pattern implementation for concurrent access to the todostore</li>
 <li><strong>filestorage</strong> - contains r/w disk access and backup logic </li>
